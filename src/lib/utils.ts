@@ -1,0 +1,58 @@
+import { errAsync, ResultAsync } from "neverthrow";
+import { project_environment_separator } from "@/constants";
+import { CustomError } from "@/lib/error";
+import { env_paths } from "./env-paths";
+import { safe_fs_mkdir, safe_path_join } from "./safe";
+
+export function get_project_name(base_project_name: string, environment?: string): string {
+  return environment ? `${base_project_name}${project_environment_separator}${environment}` : base_project_name;
+}
+
+export function get_state_file_path(): ResultAsync<string, CustomError> {
+  const file_name = "current-environment.json";
+  const project_name = "dotman";
+
+  const state_dir = env_paths(project_name).mapErr(
+    (err) => new CustomError("Could not get path for storing current environment", { cause: err }),
+  );
+
+  const state_dir_created = state_dir.asyncAndThen((paths) =>
+    safe_fs_mkdir(paths.state, { recursive: true }).map(() => paths.state),
+  );
+
+  const state_file_path = state_dir_created.andThen((state_path) => {
+    const path_result = safe_path_join(state_path, file_name);
+    if (path_result.isErr()) {
+      return errAsync(path_result.error);
+    }
+    return ResultAsync.fromSafePromise(Promise.resolve(path_result.value));
+  });
+
+  return state_file_path;
+}
+
+export function mask_secret_value(value: string): string {
+  if (!value) return "";
+
+  if (value.length <= 4) {
+    return "*".repeat(value.length);
+  }
+
+  const first_char = value.charAt(0);
+  const last_char = value.charAt(value.length - 1);
+  const masked_middle = "*".repeat(Math.max(4, value.length - 2));
+
+  return `${first_char}${masked_middle}${last_char}`;
+}
+
+export function get_value_change_indicator(old_value: string, new_value: string): string {
+  if (old_value === new_value) {
+    return "(no change)";
+  }
+
+  if (old_value.length !== new_value.length) {
+    return `(length: ${old_value.length} → ${new_value.length})`;
+  }
+
+  return "(modified)";
+}

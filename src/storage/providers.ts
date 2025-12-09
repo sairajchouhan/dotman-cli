@@ -1,0 +1,106 @@
+import { errAsync, type ResultAsync } from "neverthrow";
+import { toJSONSchema } from "zod";
+import { constants } from "@/constants";
+import { env_map_op_schema } from "@/lib/env_schema";
+import { CustomError } from "@/lib/error";
+import type { EnvMap, FieldMetadata, StorageClient } from "@/lib/types";
+import { BitwardenStorageClient, env_map_bw_schema } from "./clients/bw";
+import { OnePasswordStorageClient } from "./clients/op";
+
+export const PROVIDER_REGISTRY = {
+  onepassword: {
+    key: "onepassword" as const,
+    label: "1Password" as const,
+    env_map_schema: env_map_op_schema,
+    is_available: (env_map: EnvMap) => Boolean(env_map[constants.op_service_account_token]),
+    create: (env_map: Record<string, string>): ResultAsync<StorageClient, CustomError> => {
+      const env_map_parse_res = env_map_op_schema.safeParse(env_map);
+      if (!env_map_parse_res.success) {
+        const err_msg = env_map_parse_res.error.issues
+          .map((iss) => `"${iss.path.join("")}" environment variable is required`)
+          .join("\n");
+        return errAsync(new CustomError(`${err_msg}`));
+      }
+      const env_map_parsed = env_map_parse_res.data;
+
+      return OnePasswordStorageClient.init(env_map_parsed).map((client) => {
+        const storage_client = new OnePasswordStorageClient(client, env_map_parsed);
+        return storage_client;
+      });
+    },
+    get_env_map_keys: () => {
+      const properties = toJSONSchema(env_map_op_schema).properties;
+      if (!properties) {
+        return [];
+      }
+      return Object.keys(properties);
+    },
+    get_field_metadata: (): Record<string, FieldMetadata> => ({
+      DOTMAN_PROJECT_NAME: {
+        description: "Enter your project name",
+        hint: "e.g., 'my-app', 'api-service'",
+      },
+      OP_VAULT_NAME: {
+        description: "Which 1Password vault should we use?",
+        hint: "View your vaults at 1password.com",
+      },
+      OP_SERVICE_ACCOUNT_TOKEN: {
+        description: "Enter your 1Password service account token",
+        hint: "Generate at: 1Password Settings → Developer → Service Accounts",
+        doc_url: "https://developer.1password.com/docs/service-accounts/",
+      },
+    }),
+  },
+  bitwarden: {
+    key: "bitwarden" as const,
+    label: "BitWarden" as const,
+    env_map_schema: env_map_bw_schema,
+    is_available: (env_map: EnvMap) => Boolean(env_map.BWS_ACCESS_TOKEN),
+    create: (env_map: Record<string, string>): ResultAsync<StorageClient, CustomError> => {
+      const env_map_parse_res = env_map_bw_schema.safeParse(env_map);
+      if (!env_map_parse_res.success) {
+        const err_msg = env_map_parse_res.error.issues
+          .map((iss) => `"${iss.path.join("")}" environment variable is required`)
+          .join("\n");
+        return errAsync(new CustomError(`${err_msg}`));
+      }
+      const env_map_parsed = env_map_parse_res.data;
+
+      return BitwardenStorageClient.init(env_map_parsed).map((client) => {
+        const storage_client = new BitwardenStorageClient(client, env_map_parsed);
+        return storage_client;
+      });
+    },
+    get_env_map_keys: () => {
+      const properties = toJSONSchema(env_map_bw_schema).properties;
+      if (!properties) {
+        return [];
+      }
+      return Object.keys(properties);
+    },
+    get_field_metadata: (): Record<string, FieldMetadata> => ({
+      DOTMAN_PROJECT_NAME: {
+        description: "Enter your project name",
+        hint: "e.g., 'my-app', 'api-service'",
+      },
+      BWS_ACCESS_TOKEN: {
+        description: "Enter your Bitwarden access token",
+        hint: "Generate at: Bitwarden → Organizations → Secrets Manager → Access Tokens",
+        doc_url: "https://bitwarden.com/help/access-tokens/",
+      },
+      BWS_ORGANIZATION_ID: {
+        description: "Enter your organization ID",
+        hint: "Find it in your Bitwarden organization settings or URL",
+        doc_url: "https://bitwarden.com/help/organization-info/",
+      },
+      BWS_API_URL: {
+        description: "API endpoint URL (optional)",
+        hint: "Default: https://api.bitwarden.com - change only for self-hosted",
+      },
+      BWS_IDENTITY_URL: {
+        description: "Identity endpoint URL (optional)",
+        hint: "Default: https://identity.bitwarden.com - change only for self-hosted",
+      },
+    }),
+  },
+};
