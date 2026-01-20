@@ -1,4 +1,4 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { Command } from "commander";
 import { render_error, render_info } from "@/components/errors";
 import { read_env_files } from "@/lib/dotenv";

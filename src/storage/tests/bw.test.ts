@@ -37,6 +37,7 @@ function make_valid_env_map() {
   };
 }
 
+// biome-ignore lint/nursery/noSecrets: test class name is not a secret
 describe("BitwardenStorageClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();

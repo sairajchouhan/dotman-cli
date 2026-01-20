@@ -6,6 +6,7 @@ import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import { ResultAsync } from "neverthrow";
 import { useEffect, useState } from "react";
+import { render_error, render_success } from "@/components/errors";
 import { constants } from "@/constants";
 import { write_env } from "@/lib/dotenv";
 import type { SelectItem } from "@/lib/types";
@@ -88,7 +89,8 @@ export const InitCmdComp = ({ env_map, env_file_name, env_vault_name, env_projec
     );
 
     if (write_res.isErr()) {
-      console.error("Count not write to env file");
+      render_error({ error: write_res.error });
+      cli_app.exit();
       return;
     }
 
@@ -98,8 +100,8 @@ export const InitCmdComp = ({ env_map, env_file_name, env_vault_name, env_projec
         title: project_name,
         vaultId: item.value.id,
       });
+      render_success({ message: `Project ${project_name} created successfully` });
       cli_app.exit();
-      console.log(`Project ${project_name} created successfully`);
       return;
     }
   };

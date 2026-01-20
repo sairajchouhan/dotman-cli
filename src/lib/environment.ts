@@ -1,8 +1,22 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { err, errAsync, ok, type Result, ResultAsync } from "neverthrow";
 import { project_environment_separator } from "@/constants";
 import { CustomError } from "@/lib/error";
 import { safe_fs_read_dir, safe_fs_read_file, safe_fs_write_file, safe_json_parse, safe_json_stringify } from "./safe";
 import { get_state_file_path } from "./utils";
+
+function validate_project_directory(cwd: string): ResultAsync<void, CustomError> {
+  const env_file_path = path.resolve(cwd, ".env");
+  return ResultAsync.fromPromise(
+    fs.access(env_file_path),
+    () =>
+      // TODO:  we definitely can improve this check of validating project directory
+      new CustomError("Not a valid dotman project directory", {
+        suggestion: "Ensure you are in a directory with a .env file, or run 'dotman init' to initialize a new project",
+      }),
+  ).map(() => undefined);
+}
 
 export function validate_environment_name(environment: string): Result<string, CustomError> {
   const trimmed = environment.trim();
@@ -53,39 +67,39 @@ export function save_current_env(_environment: string): ResultAsync<void, Custom
   }
 
   const environment = validated_environment.value;
+  const cwd = process.cwd();
   const state_file_path_res = get_state_file_path();
 
-  const parsed_json = state_file_path_res.andThen((file_path) =>
-    safe_fs_read_file(file_path, { encoding: "utf8" })
-      .orElse((err) => {
-        if (err.cause && (err.cause as NodeJS.ErrnoException).code === "ENOENT") {
-          return safe_fs_write_file(file_path, "{}").map(() => "{}");
-        }
-        return errAsync(err);
-      })
-      .andThen((content) => {
-        const parse_result = safe_json_parse(String(content));
-        if (parse_result.isErr()) {
-          return safe_fs_write_file(file_path, "{}").map(() => ({}));
-        }
-        return ResultAsync.fromSafePromise(Promise.resolve(parse_result.value));
-      }),
-  );
+  return validate_project_directory(cwd).andThen(() => {
+    const parsed_json = state_file_path_res.andThen((file_path) =>
+      safe_fs_read_file(file_path, { encoding: "utf8" })
+        .orElse((err) => {
+          if (err.cause && (err.cause as NodeJS.ErrnoException).code === "ENOENT") {
+            return safe_fs_write_file(file_path, "{}").map(() => "{}");
+          }
+          return errAsync(err);
+        })
+        .andThen((content) => {
+          const parse_result = safe_json_parse(String(content));
+          if (parse_result.isErr()) {
+            return safe_fs_write_file(file_path, "{}").map(() => ({}));
+          }
+          return ResultAsync.fromSafePromise(Promise.resolve(parse_result.value));
+        }),
+    );
 
-  const cwd = process.cwd();
+    const updated_json = parsed_json.map((json) => {
+      const updated = { ...json, [cwd]: environment };
+      return updated;
+    });
 
-  const updated_json = parsed_json.map((json) => {
-    // TODO: have to ensure that cwd is pointing to a right project, user should not be able to save environment for any directory which is not a project directory
-    const updated = { ...json, [cwd]: environment };
-    return updated;
+    return updated_json
+      .andThen((json) => safe_json_stringify(json))
+      .andThen((json_string) =>
+        state_file_path_res.andThen((file_path) => safe_fs_write_file(file_path, json_string, { encoding: "utf8" })),
+      )
+      .map(() => undefined);
   });
-
-  return updated_json
-    .andThen((json) => safe_json_stringify(json))
-    .andThen((json_string) =>
-      state_file_path_res.andThen((file_path) => safe_fs_write_file(file_path, json_string, { encoding: "utf8" })),
-    )
-    .map(() => undefined);
 }
 
 export function get_all_environments(): ResultAsync<string[], CustomError> {

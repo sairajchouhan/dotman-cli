@@ -32,10 +32,23 @@ export function write_env(items: Record<string, string>, env_file_name: string):
     return errAsync(new CustomError("Cannot write files outside of current working directory"));
   }
 
+  // Check for symlinks (security: prevent symlink attacks)
   return ResultAsync.fromPromise(
-    fs.writeFile(final_path, final_str),
-    () => new CustomError(`Could not update "${env_file_name}" file`),
-  );
+    fs.lstat(final_path).catch(() => null),
+    () => new CustomError("Could not check file status"),
+  ).andThen((stats) => {
+    if (stats?.isSymbolicLink()) {
+      return errAsync(
+        new CustomError(`Symlinks are not permitted for security reasons: "${env_file_name}"`, {
+          suggestion: "Use a regular file instead of a symlink",
+        }),
+      );
+    }
+    return ResultAsync.fromPromise(
+      fs.writeFile(final_path, final_str, { mode: 0o600 }),
+      () => new CustomError(`Could not update "${env_file_name}" file`),
+    );
+  });
 }
 
 export function read_env(env_file_name: string): ResultAsync<EnvMap, CustomError> {
@@ -50,7 +63,27 @@ export function read_env(env_file_name: string): ResultAsync<EnvMap, CustomError
   const fs_read_file = ResultAsync.fromThrowable(fs.readFile, (err) => err as FileSystemError);
   const safe_parse = Result.fromThrowable(parse, (err) => err as Error);
 
-  return fs_read_file(final_path, "utf8")
+  // Check for symlinks (security: prevent symlink attacks)
+  return ResultAsync.fromPromise(
+    fs.lstat(final_path).catch((err) => {
+      // If file doesn't exist, we'll let readFile handle the error
+      if ((err as FileSystemError).code === "ENOENT") {
+        return null;
+      }
+      throw err;
+    }),
+    (err) => err as FileSystemError,
+  )
+    .andThen((stats) => {
+      if (stats?.isSymbolicLink()) {
+        return errAsync(
+          new CustomError(`Symlinks are not permitted for security reasons: "${env_file_name}"`, {
+            suggestion: "Use a regular file instead of a symlink",
+          }),
+        );
+      }
+      return fs_read_file(final_path, "utf8");
+    })
     .mapErr((err) => {
       if (err.code === "ENOENT") {
         return new CustomError(`Environment file "${env_file_name}" not found`, {

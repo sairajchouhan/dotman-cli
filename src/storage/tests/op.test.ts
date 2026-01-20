@@ -1,4 +1,4 @@
-import { type ItemCategory, ItemFieldType } from "@1password/sdk";
+import type { ItemCategory, ItemFieldType } from "@1password/sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mock_vaults_list = vi.fn();
@@ -38,6 +38,7 @@ function make_valid_env_map() {
   };
 }
 
+// biome-ignore lint/nursery/noSecrets: test class name is not a secret
 describe("OnePasswordStorageClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();

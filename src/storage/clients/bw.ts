@@ -7,8 +7,20 @@ import { get_project_name } from "@/lib/utils";
 
 export const env_map_bw_schema = z.looseObject({
   DOTMAN_PROJECT_NAME: z.string().min(1),
-  BWS_API_URL: z.string().default("https://api.bitwarden.com"),
-  BWS_IDENTITY_URL: z.string().default("https://identity.bitwarden.com"),
+  BWS_API_URL: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://"), {
+      message: "API URL must use HTTPS for security",
+    })
+    .default("https://api.bitwarden.com"),
+  BWS_IDENTITY_URL: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://"), {
+      message: "Identity URL must use HTTPS for security",
+    })
+    .default("https://identity.bitwarden.com"),
   BWS_ORGANIZATION_ID: z.string().min(1),
   BWS_ACCESS_TOKEN: z.string().min(1),
 });
