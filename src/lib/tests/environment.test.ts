@@ -106,6 +106,10 @@ describe("validate_environment_name", () => {
 });
 
 describe("save_current_env", () => {
+  beforeEach(async () => {
+    await create_env_file(".env");
+  });
+
   describe("input validation", () => {
     it("rejects empty string", async () => {
       const result = await save_current_env("");
@@ -234,9 +238,11 @@ describe("save_current_env", () => {
       await create_state_file({ [dir1]: "dev" });
 
       const cwd_spy = vi.spyOn(process, "cwd").mockReturnValue(dir2);
+      const access_spy = vi.spyOn(fsPromises, "access").mockResolvedValue(undefined);
       const result = await save_current_env("prod");
       expect(result.isOk()).toBe(true);
       cwd_spy.mockRestore();
+      access_spy.mockRestore();
 
       const state = await read_state_file();
       expect(state[dir1]).toBe("dev");
@@ -250,8 +256,10 @@ describe("save_current_env", () => {
       await save_current_env("dev");
 
       const cwd_spy = vi.spyOn(process, "cwd").mockReturnValue(dir2);
+      const access_spy = vi.spyOn(fsPromises, "access").mockResolvedValue(undefined);
       await save_current_env("prod");
       cwd_spy.mockRestore();
+      access_spy.mockRestore();
 
       const state = await read_state_file();
       expect(state[dir1]).toBe("dev");
@@ -280,6 +288,7 @@ describe("save_current_env", () => {
     it("handles very long directory paths", async () => {
       const long_path = `${"/very/long/path/".repeat(20)}project`;
       const cwd_spy = vi.spyOn(process, "cwd").mockReturnValue(long_path);
+      const access_spy = vi.spyOn(fsPromises, "access").mockResolvedValue(undefined);
 
       const result = await save_current_env("dev");
       expect(result.isOk()).toBe(true);
@@ -288,11 +297,13 @@ describe("save_current_env", () => {
       expect(state[long_path]).toBe("dev");
 
       cwd_spy.mockRestore();
+      access_spy.mockRestore();
     });
 
     it("handles special characters in directory path", async () => {
       const special_path = "/path/with spaces/and-dashes/under_scores";
       const cwd_spy = vi.spyOn(process, "cwd").mockReturnValue(special_path);
+      const access_spy = vi.spyOn(fsPromises, "access").mockResolvedValue(undefined);
 
       const result = await save_current_env("dev");
       expect(result.isOk()).toBe(true);
@@ -301,6 +312,7 @@ describe("save_current_env", () => {
       expect(state[special_path]).toBe("dev");
 
       cwd_spy.mockRestore();
+      access_spy.mockRestore();
     });
   });
 });
