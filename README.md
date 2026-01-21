@@ -4,11 +4,11 @@ A command-line tool for managing environment variables securely with password ma
 
 ## Features
 
-- 🔐 **Secure Storage** – Store environment variables in your password manager vault
-- 🔄 **Bi-directional Sync** – Push local changes to vault and pull updates from it
-- 🌍 **Multi-environment Support** – Manage dev, staging, production, and custom environments
-- 🧰 **Password Manager Integration** – Currently supports 1Password and Bitwarden, with an extensible provider system
-- ⚡ **Load & Run** – Load env vars and execute commands in one step
+- **Secure Storage** – Store environment variables in your password manager vault
+- **Bi-directional Sync** – Push local changes to vault and pull updates from it
+- **Multi-environment Support** – Manage dev, staging, production, and custom environments
+- **Password Manager Integration** – Currently supports 1Password and Bitwarden, with an extensible provider system
+- **Load & Run** – Load env vars and execute commands in one step
 
 ## Installation
 
