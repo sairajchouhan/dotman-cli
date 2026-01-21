@@ -1,5 +1,7 @@
 # dotman
 
+test
+
 A command-line tool for managing environment variables securely with password managers. Store, sync, and share environment variables across your team using your preferred secrets provider.
 
 ## Features
