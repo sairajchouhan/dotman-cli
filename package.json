@@ -1,14 +1,12 @@
 {
   "name": "@sairajchouhan/dotman-test",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "module": "index.ts",
   "type": "module",
   "bin": {
     "dotman": "./dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "publishConfig": {
     "access": "public"
   },
