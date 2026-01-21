@@ -1,6 +1,29 @@
 {
   "name": "dotman-cli",
   "version": "1.0.0",
+  "description": "Securely manage and sync environment variables across teams using secrets managers",
+  "license": "MIT",
+  "author": "Sairaj Chouhan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sairajchouhan/dotman-cli.git"
+  },
+  "homepage": "https://github.com/sairajchouhan/dotman-cli#readme",
+  "bugs": {
+    "url": "https://github.com/sairajchouhan/dotman-cli/issues"
+  },
+  "keywords": [
+    "dotenv",
+    "environment-variables",
+    "secrets-management",
+    "1password",
+    "bitwarden",
+    "env",
+    "cli",
+    "secret-manager",
+    "environment",
+    "config"
+  ],
   "module": "index.ts",
   "type": "module",
   "bin": {

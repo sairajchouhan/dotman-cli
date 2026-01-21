@@ -13,20 +13,20 @@ A command-line tool for managing environment variables securely with password ma
 ## Installation
 
 ```bash
-npm install -g @sairajchouhan/dotman
+npm install -g dotman-cli
 ```
 
 Or with your preferred package manager:
 
 ```bash
 # pnpm
-pnpm add -g @sairajchouhan/dotman
+pnpm add -g dotman-cli
 
 # yarn
-yarn global add @sairajchouhan/dotman
+yarn global add dotman-cli
 
 # bun
-bun add -g @sairajchouhan/dotman
+bun add -g dotman-cli
 ```
 
 ## Quick Start
