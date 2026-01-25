@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { errAsync, ResultAsync } from "neverthrow";
 import { render_error, render_success } from "@/components/errors";
 import { read_env, write_env } from "@/lib/dotenv";
+import { get_current_environment, save_current_env } from "@/lib/environment";
 import { CustomError } from "@/lib/error";
 import { PROVIDER_REGISTRY } from "@/storage/providers";
 
@@ -30,7 +31,8 @@ export const init_cmd = new Command("init")
     }
 
     let action: "overwrite" | "ignore";
-    if (!is_dotenv_empty) {
+    const has_existing_values = !is_dotenv_empty && Object.keys(dotenv_res.value).length > 0;
+    if (has_existing_values) {
       const res = await prompts.select({
         message: `Your .env file already has values. Please choose how to proceed:`,
         options: [
@@ -91,12 +93,18 @@ export const init_cmd = new Command("init")
             message += `\nDocs: ${metadata.doc_url}`;
           }
 
+          const prompt_fn = metadata?.is_secret ? prompts.password : prompts.text;
+
           return [
             key,
             () =>
-              prompts.text({
+              prompt_fn({
                 message,
                 validate(value) {
+                  // Allow empty values for optional fields
+                  if (metadata?.isOptional && value === "") {
+                    return undefined;
+                  }
                   const result = PROVIDER_REGISTRY[provider].env_map_schema.partial().safeParse({ [key]: value });
                   if (result.success) return undefined;
                   const field_error = result.error.issues.find((issue) => issue.path[0] === key);
@@ -137,7 +145,8 @@ export const init_cmd = new Command("init")
 
     const storage_client = storage_client_res.value;
     const project_name = final_env_map.DOTMAN_PROJECT_NAME as string;
-    const create_project_res = await storage_client.create_project(undefined);
+    // We default to "master" environment for the initial .env file
+    const create_project_res = await storage_client.create_project("master");
     if (create_project_res.isErr()) {
       const error = create_project_res.error;
       render_error({
@@ -146,6 +155,13 @@ export const init_cmd = new Command("init")
         exit: true,
       });
       return;
+    }
+
+    // Explicitly save the current environment as "master"
+    const save_env_res = await save_current_env("master");
+    if (save_env_res.isErr()) {
+      // Warn but don't fail, as this is just state preference
+      console.warn("Could not save current environment state:", save_env_res.error.message);
     }
 
     render_success({

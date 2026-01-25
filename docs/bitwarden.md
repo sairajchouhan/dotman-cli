@@ -126,6 +126,9 @@ BWS_ACCESS_TOKEN=0.xxxxxx.xxxxxxxx:xxxxxxxxx==
 BWS_ORGANIZATION_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
+> [!NOTE]
+> **Credential Security**: The configuration variables (`BWS_ACCESS_TOKEN`, `BWS_ORGANIZATION_ID`, `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
+
 ## Troubleshooting
 
 ### "Could not initialize Bitwarden sdk"

@@ -7,20 +7,26 @@ import { get_project_name } from "@/lib/utils";
 
 export const env_map_bw_schema = z.looseObject({
   DOTMAN_PROJECT_NAME: z.string().min(1),
-  BWS_API_URL: z
-    .string()
-    .url()
-    .refine((url) => url.startsWith("https://"), {
-      message: "API URL must use HTTPS for security",
-    })
-    .default("https://api.bitwarden.com"),
-  BWS_IDENTITY_URL: z
-    .string()
-    .url()
-    .refine((url) => url.startsWith("https://"), {
-      message: "Identity URL must use HTTPS for security",
-    })
-    .default("https://identity.bitwarden.com"),
+  BWS_API_URL: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z
+      .string()
+      .url()
+      .refine((url) => url.startsWith("https://"), {
+        message: "API URL must use HTTPS for security",
+      })
+      .default("https://api.bitwarden.com"),
+  ),
+  BWS_IDENTITY_URL: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z
+      .string()
+      .url()
+      .refine((url) => url.startsWith("https://"), {
+        message: "Identity URL must use HTTPS for security",
+      })
+      .default("https://identity.bitwarden.com"),
+  ),
   BWS_ORGANIZATION_ID: z.string().min(1),
   BWS_ACCESS_TOKEN: z.string().min(1),
 });
@@ -110,16 +116,28 @@ export class BitwardenStorageClient implements StorageClient {
   public create_project(environment: string | undefined): ResultAsync<Project, CustomError> {
     const project_name = get_project_name(this.env_map.DOTMAN_PROJECT_NAME, environment);
 
-    return ResultAsync.fromPromise(
-      this.client.projects().create(this.env_map.BWS_ORGANIZATION_ID, project_name),
-      (err) => new CustomError("Could not create project", { cause: err as Error }),
-    ).map((project) => {
-      return {
-        id: project.id,
-        title: project.name,
-        secrets: [],
-      } satisfies Project;
-    });
+    return this.get_bw_project(environment)
+      .mapErr((err) => {
+        // Enhance error message with suggestions if it's a creation failure
+        if (err.message.includes("Could not create project")) {
+          return new CustomError(`Could not create project "${project_name}"`, {
+            cause: err.cause as Error,
+            suggestion: `Possible causes:
+- Machine account doesn't have "Can read, write" permission on projects
+- Organization has reached project limit (3 for Free tier)
+- Access token is invalid or expired
+- Organization ID is incorrect`,
+          });
+        }
+        return err;
+      })
+      .map((project) => {
+        return {
+          id: project.id,
+          title: project.name,
+          secrets: [],
+        } satisfies Project;
+      });
   }
 
   private get_bw_project(environment: string | undefined): ResultAsync<sdk.ProjectResponse, CustomError> {

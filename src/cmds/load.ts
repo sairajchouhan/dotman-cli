@@ -4,6 +4,7 @@ import { render_error, render_info } from "@/components/errors";
 import { read_env_files } from "@/lib/dotenv";
 import { get_current_environment } from "@/lib/environment";
 import { program } from "@/program";
+import { create_storage_client } from "@/storage/client";
 
 type NodeSignal = "SIGINT" | "SIGTERM" | "SIGHUP";
 
@@ -55,14 +56,30 @@ export const load_cmd = new Command("load")
 
     render_info({ message: `Loading environment from ${env_file_name}` });
 
-    // 4. Merge environment variables (priority: process.env < env_map < environment_env_map)
+    // 4. Identify dotman-specific keys to filter out
+    let client_env_keys: string[] = [];
+    const storage_client_res = await create_storage_client(env_map);
+    if (storage_client_res.isOk()) {
+      client_env_keys = storage_client_res.value.get_client_env_keys();
+    }
+
+    // 5. Merge environment variables (priority: process.env < env_map < environment_env_map)
+    // Filter out dotman keys from env_map and environment_env_map
+    const filtered_env_map = Object.fromEntries(
+      Object.entries(env_map).filter(([key]) => !client_env_keys.includes(key)),
+    );
+
+    const filtered_environment_env_map = Object.fromEntries(
+      Object.entries(environment_env_map).filter(([key]) => !client_env_keys.includes(key)),
+    );
+
     const merged_env = {
       ...process.env,
-      ...env_map,
-      ...environment_env_map,
+      ...filtered_env_map,
+      ...filtered_environment_env_map,
     };
 
-    // 5. Spawn child process
+    // 6. Spawn child process
     const is_windows = process.platform === "win32";
     const child: ChildProcess = spawn(command, args, {
       stdio: "inherit",

@@ -33,16 +33,7 @@ export function get_state_file_path(): ResultAsync<string, CustomError> {
 
 export function mask_secret_value(value: string): string {
   if (!value) return "";
-
-  if (value.length <= 4) {
-    return "*".repeat(value.length);
-  }
-
-  const first_char = value.charAt(0);
-  const last_char = value.charAt(value.length - 1);
-  const masked_middle = "*".repeat(Math.max(4, value.length - 2));
-
-  return `${first_char}${masked_middle}${last_char}`;
+  return "*".repeat(value.length);
 }
 
 export function get_value_change_indicator(old_value: string, new_value: string): string {
