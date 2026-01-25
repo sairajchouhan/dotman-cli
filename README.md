@@ -212,7 +212,13 @@ To use 1Password as your storage provider, you'll need:
 
 ### Bitwarden
 
-To use Bitwarden as your storage provider, you'll need:
+> [!IMPORTANT]
+> dotman requires **Bitwarden Secrets Manager**, which is a separate product from the regular Bitwarden password manager. There's a free tier available that works perfectly for individual use.
+
+**📖 [Complete Bitwarden Setup Guide](docs/bitwarden.md)** – Follow this step-by-step guide if you're new to Bitwarden Secrets Manager.
+
+<details>
+<summary>Quick reference (for users who already have Secrets Manager set up)</summary>
 
 | Variable              | Description                              |
 | --------------------- | ---------------------------------------- |
@@ -224,10 +230,14 @@ To use Bitwarden as your storage provider, you'll need:
 
 **Getting an Access Token:**
 
-1. Go to Bitwarden → Organizations → Secrets Manager → Access Tokens
-2. Create a new access token for your project
+1. Go to Bitwarden → Secrets Manager → Machine accounts → Your account → Access tokens
+2. Create a new access token
 
-📖 [Bitwarden Access Tokens Documentation](https://bitwarden.com/help/access-tokens/)
+**Finding Your Organization ID:**
+
+Look at your Secrets Manager URL: `https://vault.bitwarden.com/#/sm/{ORG_ID}/projects`
+
+</details>
 
 ## Environment Files
 
