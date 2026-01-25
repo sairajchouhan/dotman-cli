@@ -96,13 +96,11 @@ export const PROVIDER_REGISTRY = {
       },
       BWS_API_URL: {
         description: "API endpoint URL (optional)",
-        hint: "Press Enter for default: https://api.bitwarden.com",
         is_optional: true,
         default_value: "https://api.bitwarden.com",
       },
       BWS_IDENTITY_URL: {
         description: "Identity endpoint URL (optional)",
-        hint: "Press Enter for default: https://identity.bitwarden.com",
         is_optional: true,
         default_value: "https://identity.bitwarden.com",
       },

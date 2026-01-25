@@ -64,20 +64,17 @@ export const load_cmd = new Command("load")
     }
 
     // 5. Merge environment variables (priority: process.env < env_map < environment_env_map)
-    // Filter out dotman keys from env_map and environment_env_map
-    const filtered_env_map = Object.fromEntries(
-      Object.entries(env_map).filter(([key]) => !client_env_keys.includes(key)),
-    );
-
-    const filtered_environment_env_map = Object.fromEntries(
-      Object.entries(environment_env_map).filter(([key]) => !client_env_keys.includes(key)),
-    );
-
     const merged_env = {
       ...process.env,
-      ...filtered_env_map,
-      ...filtered_environment_env_map,
+      ...env_map,
+      ...environment_env_map,
     };
+
+    // Filter out dotman keys from the final merged environment to prevent leaking secrets
+    // regardless of whether they came from the file or the parent process environment.
+    for (const key of client_env_keys) {
+      delete merged_env[key];
+    }
 
     // 6. Spawn child process
     const is_windows = process.platform === "win32";
