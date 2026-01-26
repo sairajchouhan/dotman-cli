@@ -17,6 +17,8 @@ This guide walks you through setting up Bitwarden Secrets Manager to use with do
 | `BWS_ACCESS_TOKEN`    | Authentication token for programmatic access |
 | `BWS_ORGANIZATION_ID` | Your organization's unique identifier        |
 | `DOTMAN_PROJECT_NAME` | Name for your dotman project                 |
+| `BWS_API_URL`         | API URL (optional, for self-hosted)          |
+| `BWS_IDENTITY_URL`    | Identity URL (optional, for self-hosted)     |
 
 ## Step 1: Create a Bitwarden Organization
 
@@ -31,19 +33,22 @@ If you already have an organization, skip to [Step 2](#step-2-enable-secrets-man
 7. Check the checkbox **Subscribe to Secrets Manager**
 8. Complete the setup
 
-## Step 2: Enable Secrets Manager
+## Step 2: Enable Secrets Manager (Existing Organizations Only)
+
+> [!NOTE]
+> Skip this step if you already enabled Secrets Manager when creating your organization in Step 1.
 
 1. Open the [Bitwarden Admin Console](https://vault.bitwarden.com) for your organization
 2. Navigate to **Billing → Subscription**
 3. In the **More from Bitwarden** section, check **Subscribe to Secrets Manager**
-4. Click **Submit** (Free plan) or **Save** (paid plans)
+4. Click **Save**
 
-After enabling, you should see "Secrets Manager" in the product switcher at the top of the page.
+After enabling, you should see "Secrets Manager" in the product switcher at the bottom of the left sidebar.
 
 ## Step 3: Access Secrets Manager
 
-1. Click the **product switcher** in the top navigation (it may say "Password Manager")
-2. Select **Secrets Manager**
+1. At the bottom of the left sidebar, you'll see the product switcher (showing "Password Manager", "Secrets Manager", "Admin Console")
+2. Click **Secrets Manager**
 3. You'll see your empty Secrets Manager vault
 
 ## Step 4: Create a Machine Account
@@ -53,12 +58,7 @@ Machine accounts provide programmatic access to your secrets. dotman uses a mach
 1. In Secrets Manager, click **New → Machine account**
 2. Enter a name (e.g., "dotman-cli")
 3. Click **Save**
-4. Open the newly created machine account
-5. Go to the **Projects** tab
-6. You'll assign project access later when dotman creates projects for you
 
-> [!NOTE]
-> For dotman to work properly, the machine account needs **Can read, write** permission on projects. When you run `dotman init`, it will create a project, and you'll need to grant your machine account access to it.
 
 ## Step 5: Generate an Access Token
 
@@ -84,10 +84,6 @@ https://vault.bitwarden.com/#/sm/{YOUR_ORGANIZATION_ID}/projects
 
 Copy this ID – it will be your `BWS_ORGANIZATION_ID`.
 
-**Alternative method:**
-
-1. Go to Admin Console → **Settings → Organization info**
-2. The Organization ID is displayed there
 
 ## Step 7: Configure dotman
 
@@ -103,18 +99,7 @@ When prompted, select **Bitwarden** as your provider and enter:
 - **Access token**: The token you copied in Step 5
 - **Organization ID**: The ID from Step 6
 
-dotman will create a `.env` file with your configuration.
-
-## Step 8: Grant Machine Account Access
-
-After running `dotman init`, dotman creates a project in Secrets Manager. You need to grant your machine account access to it:
-
-1. In Secrets Manager, find the project dotman created (named like "my-app-dev")
-2. Click on the project
-3. Go to the **Machine Accounts** tab
-4. Add your machine account with **Can read, write** permission
-
-Now you're ready to use dotman with Bitwarden!
+dotman will create a `.env` file with your configuration. You're now ready to use dotman with Bitwarden!
 
 ## Quick Reference
 
@@ -128,29 +113,6 @@ BWS_ORGANIZATION_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 > [!NOTE]
 > **Credential Security**: The configuration variables (`BWS_ACCESS_TOKEN`, `BWS_ORGANIZATION_ID`, `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
-
-## Troubleshooting
-
-### "Could not initialize Bitwarden sdk"
-
-- Verify your `BWS_ACCESS_TOKEN` is correct and not expired
-- Check that the token has not been revoked
-
-### "Could not list projects" or "Could not access secrets"
-
-- Ensure your machine account has access to the project
-- Verify the machine account has **Can read, write** permission
-
-### "Could not create project"
-
-- Check that your organization hasn't exceeded the project limit (3 for Free tier)
-- Verify your machine account exists and the access token is valid
-
-## Next Steps
-
-- [Push your first environment variables](../README.md#2-push-environment-variables)
-- [Learn about environment management](../README.md#environment-files)
-- [Explore the CLI commands](../README.md#commands)
 
 ## Helpful Links
 

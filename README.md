@@ -212,32 +212,7 @@ To use 1Password as your storage provider, you'll need:
 
 ### Bitwarden
 
-> [!IMPORTANT]
-> dotman requires **Bitwarden Secrets Manager**, which is a separate product from the regular Bitwarden password manager. There's a free tier available that works perfectly for individual use.
-
-**📖 [Complete Bitwarden Setup Guide](docs/bitwarden.md)** – Follow this step-by-step guide if you're new to Bitwarden Secrets Manager.
-
-<details>
-<summary>Quick reference (for users who already have Secrets Manager set up)</summary>
-
-| Variable              | Description                              |
-| --------------------- | ---------------------------------------- |
-| `DOTMAN_PROJECT_NAME` | Your project name                        |
-| `BWS_ACCESS_TOKEN`    | Bitwarden Secrets Manager access token   |
-| `BWS_ORGANIZATION_ID` | Your organization ID                     |
-| `BWS_API_URL`         | API URL (optional, for self-hosted)      |
-| `BWS_IDENTITY_URL`    | Identity URL (optional, for self-hosted) |
-
-**Getting an Access Token:**
-
-1. Go to Bitwarden → Secrets Manager → Machine accounts → Your account → Access tokens
-2. Create a new access token
-
-**Finding Your Organization ID:**
-
-Look at your Secrets Manager URL: `https://vault.bitwarden.com/#/sm/{ORG_ID}/projects`
-
-</details>
+**📖 [Complete Bitwarden Setup Guide](docs/bitwarden.md)** – Follow this step-by-step guide to set up Bitwarden Secrets Manager (Cloud or Self-hosted).
 
 ## Environment Files
 
@@ -291,6 +266,9 @@ dotman load -- npm start
 ```
 
 ## Security Notes
+
+> [!NOTE]
+> **Credential Security**: The configuration variables (like `OP_SERVICE_ACCOUNT_TOKEN`, `BWS_ACCESS_TOKEN`, `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
 
 - **Never commit environment files** – Add `.env*` to your `.gitignore` to exclude all env files (`.env`, `.env.dev`, `.env.prod`, etc.)
 - **Use service accounts** – Create dedicated tokens with minimal permissions
