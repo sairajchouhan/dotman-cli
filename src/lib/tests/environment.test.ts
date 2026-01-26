@@ -103,6 +103,23 @@ describe("validate_environment_name", () => {
       expect(result.error.message).toContain("..");
     }
   });
+
+  it("rejects reserved name 'master'", () => {
+    const result = validate_environment_name("master");
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("reserved");
+      expect(result.error.message).toContain("master");
+    }
+  });
+
+  it("rejects 'master' with whitespace", () => {
+    const result = validate_environment_name("  master  ");
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("reserved");
+    }
+  });
 });
 
 describe("save_current_env", () => {
@@ -452,6 +469,49 @@ describe("get_all_environments", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).not.toContain("..");
+      }
+    });
+  });
+
+  describe(".env.master reserved name handling", () => {
+    it("filters out .env.master file (reserved name)", async () => {
+      await create_env_file(".env", "BASE=value");
+      // biome-ignore lint/nursery/noSecrets: test fixture
+      await create_env_file(".env.master", "MASTER=value");
+
+      const result = await get_all_environments();
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        // Should have exactly one "master" from .env, not from .env.master
+        expect(result.value.filter((e) => e === "master").length).toBe(1);
+        expect(result.value).toEqual(["master"]);
+      }
+    });
+
+    it("ignores .env.master when .env is absent", async () => {
+      // biome-ignore lint/nursery/noSecrets: test fixture
+      await create_env_file(".env.master", "MASTER=value");
+
+      const result = await get_all_environments();
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        // .env.master should be filtered out, no "master" environment
+        expect(result.value).not.toContain("master");
+        expect(result.value).toEqual([]);
+      }
+    });
+
+    it(".env maps to master while .env.master is filtered", async () => {
+      await create_env_file(".env", "BASE=value");
+      // biome-ignore lint/nursery/noSecrets: test fixture
+      await create_env_file(".env.master", "CONFLICT=value");
+      await create_env_file(".env.dev", "DEV=value");
+
+      const result = await get_all_environments();
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        // .env → master, .env.master → filtered out, .env.dev → dev
+        expect(result.value).toEqual(["master", "dev"]);
       }
     });
   });
