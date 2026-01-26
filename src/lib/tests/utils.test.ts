@@ -29,8 +29,14 @@ describe("get_project_name", () => {
     expect(get_project_name("app")).toBe("app");
   });
 
-  it("appends separator and environment when provided", () => {
+  it("returns base name when environment is master (no suffix)", () => {
+    expect(get_project_name("app", "master")).toBe("app");
+  });
+
+  it("appends separator and environment for non-master environments", () => {
     expect(get_project_name("app", "prod")).toBe(`app${project_environment_separator}prod`);
+    expect(get_project_name("app", "staging")).toBe(`app${project_environment_separator}staging`);
+    expect(get_project_name("app", "dev")).toBe(`app${project_environment_separator}dev`);
   });
 });
 
@@ -43,8 +49,8 @@ describe("mask_secret_value", () => {
     expect(mask_secret_value("abcd")).toBe("****");
   });
 
-  it("preserves first and last characters for longer secrets", () => {
-    expect(mask_secret_value("secretValue")).toBe("s*********e");
+  it("fully masks longer secrets", () => {
+    expect(mask_secret_value("secretValue")).toBe("***********");
   });
 });
 

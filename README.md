@@ -41,9 +41,9 @@ dotman init
 
 This will:
 
-- Prompt you to select a storage provider (1Password or Bitwarden)
+- Prompt you to select a storage provider (currenlty 1Password or Bitwarden)
 - Guide you through entering required credentials
-- Create or update your `.env` file with configuration
+- Create or update your `.env` file
 - Create a project in your vault to store environment variables
 
 ### 2. Push Environment Variables
@@ -144,7 +144,7 @@ dotman load -e prod -- node server.js
 
 **Options:**
 
-- `-e, --env <ENV>` – Environment to load
+- `-e, --env <ENV>` – Environment to load, default to "master"
 
 ### `dotman env`
 
@@ -162,9 +162,9 @@ Output:
 
 ```
 Available Environments:
-  ★ dev (current)
-  • stag
-  • prod (.env)
+  ★ master (.env) (current)
+  • dev
+  • prod
 
 3 environments found
 ```
@@ -194,40 +194,11 @@ dotman env use production
 
 ### 1Password
 
-To use 1Password as your storage provider, you'll need:
-
-| Variable                   | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `DOTMAN_PROJECT_NAME`      | Your project name                        |
-| `OP_VAULT_NAME`            | The 1Password vault to use               |
-| `OP_SERVICE_ACCOUNT_TOKEN` | Service account token for authentication |
-
-**Getting a Service Account Token:**
-
-1. Go to [1Password.com](https://1password.com) → Settings → Developer → Service Accounts
-2. Create a new service account with access to your vault
-3. Copy the token
-
-📖 [1Password Service Accounts Documentation](https://developer.1password.com/docs/service-accounts/)
+**📖 [Complete 1Password Setup Guide](docs/1password.md)** – Follow this step-by-step guide to set up 1Password Service Accounts.
 
 ### Bitwarden
 
-To use Bitwarden as your storage provider, you'll need:
-
-| Variable              | Description                              |
-| --------------------- | ---------------------------------------- |
-| `DOTMAN_PROJECT_NAME` | Your project name                        |
-| `BWS_ACCESS_TOKEN`    | Bitwarden Secrets Manager access token   |
-| `BWS_ORGANIZATION_ID` | Your organization ID                     |
-| `BWS_API_URL`         | API URL (optional, for self-hosted)      |
-| `BWS_IDENTITY_URL`    | Identity URL (optional, for self-hosted) |
-
-**Getting an Access Token:**
-
-1. Go to Bitwarden → Organizations → Secrets Manager → Access Tokens
-2. Create a new access token for your project
-
-📖 [Bitwarden Access Tokens Documentation](https://bitwarden.com/help/access-tokens/)
+**📖 [Complete Bitwarden Setup Guide](docs/bitwarden.md)** – Follow this step-by-step guide to set up Bitwarden Secrets Manager (Cloud or Self-hosted).
 
 ## Environment Files
 
@@ -235,11 +206,12 @@ dotman uses a simple naming convention:
 
 | File          | Description                             |
 | ------------- | --------------------------------------- |
-| `.env`        | Master file with provider configuration |
+| `.env`        | Master environment with provider config |
 | `.env.<name>` | Any environment name you choose         |
 
 The part after `.env.` becomes the environment name. For example:
 
+- `.env` → environment name is `master`
 - `.env.dev` → environment name is `dev`
 - `.env.staging` → environment name is `staging`
 - `.env.production` → environment name is `production`
@@ -265,14 +237,20 @@ Here's a typical team workflow:
 # Initial setup (one-time)
 dotman init
 
-# During development
+# Create and switch to development environment
+dotman env new dev
 dotman env use dev
+
+# During development
 dotman pull --apply        # Get latest env vars
 dotman load -- npm run dev # Run with loaded env
 
 # Add new variables
 echo "NEW_API_KEY=abc123" >> .env.dev
 dotman push --apply        # Share with team
+
+# Setup production (one-time)
+dotman env new prod
 
 # Deploy to production
 dotman env use prod
@@ -281,6 +259,9 @@ dotman load -- npm start
 ```
 
 ## Security Notes
+
+> [!NOTE]
+> **Credential Security**: The configuration variables (like `OP_SERVICE_ACCOUNT_TOKEN`, `BWS_ACCESS_TOKEN`, `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
 
 - **Never commit environment files** – Add `.env*` to your `.gitignore` to exclude all env files (`.env`, `.env.dev`, `.env.prod`, etc.)
 - **Use service accounts** – Create dedicated tokens with minimal permissions

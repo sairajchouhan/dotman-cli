@@ -272,6 +272,7 @@ describe("BitwardenStorageClient", () => {
       const env_map = make_valid_env_map();
       const storage_client = new BitwardenStorageClient(mock_bw_client as never, env_map);
 
+      mock_projects_list.mockResolvedValue({ data: [] });
       mock_projects_create.mockResolvedValue({ id: "new-proj", name: "test-project__dev" });
 
       const result = await storage_client.create_project("dev");
@@ -289,6 +290,7 @@ describe("BitwardenStorageClient", () => {
       const env_map = make_valid_env_map();
       const storage_client = new BitwardenStorageClient(mock_bw_client as never, env_map);
 
+      mock_projects_list.mockResolvedValue({ data: [] });
       mock_projects_create.mockResolvedValue({ id: "new-proj", name: "test-project" });
 
       const result = await storage_client.create_project(undefined);
@@ -301,13 +303,14 @@ describe("BitwardenStorageClient", () => {
       const env_map = make_valid_env_map();
       const storage_client = new BitwardenStorageClient(mock_bw_client as never, env_map);
 
+      mock_projects_list.mockResolvedValue({ data: [] });
       mock_projects_create.mockRejectedValue(new Error("Creation failed"));
 
       const result = await storage_client.create_project("dev");
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Could not create project");
+        expect(result.error.message).toBe('Could not create project "test-project__dev"');
       }
     });
   });

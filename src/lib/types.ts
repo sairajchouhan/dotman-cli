@@ -24,6 +24,9 @@ export type FieldMetadata = {
   description: string;
   hint?: string;
   doc_url?: string;
+  is_optional?: boolean;
+  default_value?: string;
+  is_secret?: boolean;
 };
 
 export interface StorageClient {

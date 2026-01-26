@@ -198,6 +198,7 @@ describe("env_cmd", () => {
   describe("env use", () => {
     it("sets current environment successfully", async () => {
       mock_get_all_environments.mockReturnValue(okAsync(["master", "staging", "production"]));
+      mock_get_current_environment.mockReturnValue(okAsync("master"));
       mock_save_current_env.mockReturnValue(okAsync(undefined));
 
       await env_cmd.parseAsync(["node", "env", "use", "staging"]);
@@ -239,6 +240,7 @@ describe("env_cmd", () => {
 
     it("renders error when save_current_env fails", async () => {
       mock_get_all_environments.mockReturnValue(okAsync(["master", "dev"]));
+      mock_get_current_environment.mockReturnValue(okAsync("master"));
       mock_save_current_env.mockReturnValue(errAsync(new CustomError("Could not save state")));
 
       await env_cmd.parseAsync(["node", "env", "use", "dev"]);

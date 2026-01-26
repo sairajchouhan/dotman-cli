@@ -128,6 +128,14 @@ env_cmd.addCommand(
         return;
       }
 
+      const current_env_res = await get_current_environment();
+      if (current_env_res.isOk() && current_env_res.value === environment) {
+        render_success({
+          message: `Already using environment "${environment}"`,
+        });
+        return;
+      }
+
       const res = await save_current_env(environment);
 
       if (res.isErr()) {
