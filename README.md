@@ -194,21 +194,7 @@ dotman env use production
 
 ### 1Password
 
-To use 1Password as your storage provider, you'll need:
-
-| Variable                   | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `DOTMAN_PROJECT_NAME`      | Your project name                        |
-| `OP_VAULT_NAME`            | The 1Password vault to use               |
-| `OP_SERVICE_ACCOUNT_TOKEN` | Service account token for authentication |
-
-**Getting a Service Account Token:**
-
-1. Go to [1Password.com](https://1password.com) → Settings → Developer → Service Accounts
-2. Create a new service account with access to your vault
-3. Copy the token
-
-📖 [1Password Service Accounts Documentation](https://developer.1password.com/docs/service-accounts/)
+**📖 [Complete 1Password Setup Guide](docs/1password.md)** – Follow this step-by-step guide to set up 1Password Service Accounts.
 
 ### Bitwarden
 
