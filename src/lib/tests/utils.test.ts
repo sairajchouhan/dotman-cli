@@ -43,8 +43,8 @@ describe("mask_secret_value", () => {
     expect(mask_secret_value("abcd")).toBe("****");
   });
 
-  it("preserves first and last characters for longer secrets", () => {
-    expect(mask_secret_value("secretValue")).toBe("s*********e");
+  it("fully masks longer secrets", () => {
+    expect(mask_secret_value("secretValue")).toBe("***********");
   });
 });
 
