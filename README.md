@@ -41,9 +41,9 @@ dotman init
 
 This will:
 
-- Prompt you to select a storage provider (1Password or Bitwarden)
+- Prompt you to select a storage provider (currenlty 1Password or Bitwarden)
 - Guide you through entering required credentials
-- Create or update your `.env` file with configuration
+- Create or update your `.env` file
 - Create a project in your vault to store environment variables
 
 ### 2. Push Environment Variables
@@ -144,7 +144,7 @@ dotman load -e prod -- node server.js
 
 **Options:**
 
-- `-e, --env <ENV>` – Environment to load
+- `-e, --env <ENV>` – Environment to load, default to "master"
 
 ### `dotman env`
 
@@ -162,9 +162,9 @@ Output:
 
 ```
 Available Environments:
-  ★ dev (current)
-  • stag
-  • prod (.env)
+  ★ master (.env) (current)
+  • dev
+  • prod
 
 3 environments found
 ```
@@ -206,11 +206,12 @@ dotman uses a simple naming convention:
 
 | File          | Description                             |
 | ------------- | --------------------------------------- |
-| `.env`        | Master file with provider configuration |
+| `.env`        | Master environment with provider config |
 | `.env.<name>` | Any environment name you choose         |
 
 The part after `.env.` becomes the environment name. For example:
 
+- `.env` → environment name is `master`
 - `.env.dev` → environment name is `dev`
 - `.env.staging` → environment name is `staging`
 - `.env.production` → environment name is `production`
@@ -236,14 +237,20 @@ Here's a typical team workflow:
 # Initial setup (one-time)
 dotman init
 
-# During development
+# Create and switch to development environment
+dotman env new dev
 dotman env use dev
+
+# During development
 dotman pull --apply        # Get latest env vars
 dotman load -- npm run dev # Run with loaded env
 
 # Add new variables
 echo "NEW_API_KEY=abc123" >> .env.dev
 dotman push --apply        # Share with team
+
+# Setup production (one-time)
+dotman env new prod
 
 # Deploy to production
 dotman env use prod
