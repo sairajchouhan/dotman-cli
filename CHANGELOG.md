@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/sairajchouhan/dotman-cli/compare/v1.1.0...v1.1.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* move "master" environment restriction to command layer ([#11](https://github.com/sairajchouhan/dotman-cli/issues/11)) ([72c0e05](https://github.com/sairajchouhan/dotman-cli/commit/72c0e051e466b77fb7bf570f7f8272b9c1a8e790))
+
 # [1.1.0](https://github.com/sairajchouhan/dotman-cli/compare/v1.0.0...v1.1.0) (2026-01-26)
 
 
