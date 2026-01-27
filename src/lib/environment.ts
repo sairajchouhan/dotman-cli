@@ -29,14 +29,6 @@ export function validate_environment_name(environment: string): Result<string, C
     );
   }
 
-  if (trimmed === "master") {
-    return err(
-      new CustomError('Environment name "master" is reserved for the .env file', {
-        suggestion: "Use a different name (e.g., main, primary, base)",
-      }),
-    );
-  }
-
   if (trimmed.includes(project_environment_separator)) {
     return err(
       new CustomError(`Environment name cannot contain the separator "${project_environment_separator}"`, {
@@ -123,6 +115,11 @@ export function get_all_environments(): ResultAsync<string[], CustomError> {
           const env_name = file.name.slice(5);
           if (env_name.length === 0) {
             return err(new CustomError("Environment name cannot be empty"));
+          }
+
+          // Filter out .env.master since "master" is reserved for the base .env file
+          if (env_name === "master") {
+            return err(new CustomError("Environment name 'master' is reserved"));
           }
 
           return validate_environment_name(env_name);
