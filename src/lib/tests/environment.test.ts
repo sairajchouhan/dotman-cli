@@ -104,20 +104,19 @@ describe("validate_environment_name", () => {
     }
   });
 
-  it("rejects reserved name 'master'", () => {
+  it("accepts 'master' as valid (used internally for base .env)", () => {
     const result = validate_environment_name("master");
-    expect(result.isErr()).toBe(true);
-    if (result.isErr()) {
-      expect(result.error.message).toContain("reserved");
-      expect(result.error.message).toContain("master");
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toBe("master");
     }
   });
 
-  it("rejects 'master' with whitespace", () => {
+  it("accepts 'master' with whitespace trimmed", () => {
     const result = validate_environment_name("  master  ");
-    expect(result.isErr()).toBe(true);
-    if (result.isErr()) {
-      expect(result.error.message).toContain("reserved");
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toBe("master");
     }
   });
 });

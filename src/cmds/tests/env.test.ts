@@ -12,6 +12,7 @@ const mock_write_env = vi.fn();
 const mock_create_storage_client = vi.fn();
 const mock_render_error = vi.fn();
 const mock_render_success = vi.fn();
+const mock_render_info = vi.fn();
 
 vi.mock("@/lib/environment", () => ({
   validate_environment_name: (name: string) => mock_validate_environment_name(name),
@@ -32,6 +33,7 @@ vi.mock("@/storage/client", () => ({
 vi.mock("@/components/errors", () => ({
   render_error: (opts: unknown) => mock_render_error(opts),
   render_success: (opts: unknown) => mock_render_success(opts),
+  render_info: (opts: unknown) => mock_render_info(opts),
 }));
 
 import { env_cmd } from "@/cmds/env";
@@ -74,9 +76,27 @@ describe("env_cmd", () => {
       expect(mock_write_env).toHaveBeenCalledWith({ API_KEY: "" }, ".env.staging");
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Created new environment "staging"',
+          message: expect.stringContaining('Created new environment "staging"'),
         }),
       );
+      expect(mock_render_success).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Run "dotman env use staging" to switch to this environment'),
+        }),
+      );
+    });
+
+    it("rejects 'master' as environment name for new command", async () => {
+      await env_cmd.parseAsync(["node", "env", "new", "master"]);
+
+      expect(mock_render_error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Cannot create environment named "master"',
+          suggestion: expect.stringContaining("reserved for the base .env file"),
+          exit: true,
+        }),
+      );
+      expect(mock_validate_environment_name).not.toHaveBeenCalled();
     });
 
     it("renders error for invalid environment name", async () => {

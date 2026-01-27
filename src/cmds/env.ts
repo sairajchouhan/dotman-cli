@@ -18,6 +18,17 @@ env_cmd.addCommand(
     .description("Create a new environment file based on the default .env file")
     .argument("<environment>", "name of the new environment")
     .action(async (environment: string) => {
+      // Explicitly reject "master" for new environment creation
+      if (environment.trim() === "master") {
+        render_error({
+          message: 'Cannot create environment named "master"',
+          suggestion:
+            'The name "master" is reserved for the base .env file. Use a different name (e.g., main, primary, base)',
+          exit: true,
+        });
+        return;
+      }
+
       const validation_result = validate_environment_name(environment);
       if (validation_result.isErr()) {
         const error = validation_result.error;
@@ -88,7 +99,11 @@ env_cmd.addCommand(
       );
 
       write_env(filtered_env_map, new_env_file_name).match(
-        () => render_success({ message: `Created new environment "${validated_environment}"` }),
+        () => {
+          render_success({
+            message: `Created new environment "${validated_environment}"\n\nRun "dotman env use ${validated_environment}" to switch to this environment`,
+          });
+        },
         (err) => {
           render_error({
             message: err.message,
