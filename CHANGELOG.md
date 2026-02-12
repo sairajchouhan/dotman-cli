@@ -1,3 +1,23 @@
+## [1.1.1](https://github.com/sairajchouhan/dotman-cli/compare/v1.1.0...v1.1.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* move "master" environment restriction to command layer ([#11](https://github.com/sairajchouhan/dotman-cli/issues/11)) ([72c0e05](https://github.com/sairajchouhan/dotman-cli/commit/72c0e051e466b77fb7bf570f7f8272b9c1a8e790))
+
+# [1.1.0](https://github.com/sairajchouhan/dotman-cli/compare/v1.0.0...v1.1.0) (2026-01-26)
+
+
+### Bug Fixes
+
+* indentation of env block in release.yml ([53c25a3](https://github.com/sairajchouhan/dotman-cli/commit/53c25a38bacc5b6aaa37043dfc6ea71c7153ae9e))
+
+
+### Features
+
+* bunch of fixes and improvements ([#8](https://github.com/sairajchouhan/dotman-cli/issues/8)) ([b189be3](https://github.com/sairajchouhan/dotman-cli/commit/b189be39933528e7502ed1409e774de6a28ca2e6))
+* this should trigger release ([#9](https://github.com/sairajchouhan/dotman-cli/issues/9)) ([1ebaf7e](https://github.com/sairajchouhan/dotman-cli/commit/1ebaf7e5b522b26f67deeb4b5386752abb34bf27))
+
 # 1.0.0 (2026-01-21)
 
 
