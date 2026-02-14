@@ -142,7 +142,7 @@ export function read_env(env_file_name: string): ResultAsync<EnvMap, CustomError
     });
 }
 
-export interface ReadEnvFilesResult {
+interface ReadEnvFilesResult {
   env_map: EnvMap;
   environment_env_map: EnvMap;
   env_file_name: string;

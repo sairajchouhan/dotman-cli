@@ -1,11 +1,6 @@
 import type { ResultAsync } from "neverthrow";
 import type { CustomError } from "./error";
 
-export type SelectItem<T = string> = {
-  label: string;
-  value: T;
-};
-
 export type EnvMap = Record<string, string>;
 
 export type Secret = {

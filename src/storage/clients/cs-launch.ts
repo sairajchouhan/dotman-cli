@@ -20,7 +20,7 @@ export const env_map_cs_launch_schema = z.looseObject({
   ),
 });
 
-export type EnvMapCsLaunch = z.infer<typeof env_map_cs_launch_schema>;
+type EnvMapCsLaunch = z.infer<typeof env_map_cs_launch_schema>;
 
 type LaunchEnvironmentVariable = {
   key: string;

@@ -31,7 +31,7 @@ export const env_map_bw_schema = z.looseObject({
   BWS_ACCESS_TOKEN: z.string().min(1),
 });
 
-export type EnvMapBw = z.infer<typeof env_map_bw_schema>;
+type EnvMapBw = z.infer<typeof env_map_bw_schema>;
 
 export class BitwardenStorageClient implements StorageClient {
   public source = "bitwarden" as const;
