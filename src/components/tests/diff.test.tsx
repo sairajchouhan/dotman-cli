@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DiffResult } from "@/lib/diff";
+import { messages } from "@/messages";
 
 const mock_render = vi.fn(() => {});
 const mock_render_success = vi.fn(() => {});
@@ -41,7 +42,7 @@ describe("render_diff", () => {
       render_diff(diff_result);
 
       expect(mock_render_success).toHaveBeenCalledWith({
-        message: "Everything up to date",
+        message: messages.diff.up_to_date,
       });
       expect(mock_render).not.toHaveBeenCalled();
     });

@@ -2,6 +2,7 @@ import { errAsync, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 const mock_opts_with_globals = vi.fn();
 const mock_get_current_environment = vi.fn();
@@ -223,7 +224,7 @@ describe("pull_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("No secrets found"),
+          message: messages.commands.pull.no_secrets("test-project"),
           exit: true,
         }),
       );
@@ -247,7 +248,7 @@ describe("pull_cmd", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Everything up to date",
+          message: messages.commands.pull.up_to_date,
         }),
       );
     });
@@ -295,7 +296,7 @@ describe("pull_cmd", () => {
       expect(mock_write_env).toHaveBeenCalledWith({ NEW_KEY: "new" }, ".env.dev");
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Synced with remote",
+          message: messages.commands.pull.success,
         }),
       );
     });
@@ -317,7 +318,7 @@ describe("pull_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Could not update env file",
+          message: messages.commands.pull.write_failed,
           exit: true,
         }),
       );

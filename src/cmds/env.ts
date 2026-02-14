@@ -7,23 +7,21 @@ import {
   save_current_env,
   validate_environment_name,
 } from "@/lib/environment";
+import { messages } from "@/messages";
 import { create_storage_client } from "@/storage/client";
 
-export const env_cmd = new Command("env").description(
-  "List available environments or manage environment configurations",
-);
+export const env_cmd = new Command("env").description(messages.commands.env.description);
 
 env_cmd.addCommand(
   new Command("new")
-    .description("Create a new environment file based on the default .env file")
+    .description(messages.commands.env.new.description)
     .argument("<environment>", "name of the new environment")
     .action(async (environment: string) => {
       // Explicitly reject "master" for new environment creation
       if (environment.trim() === "master") {
         render_error({
-          message: 'Cannot create environment named "master"',
-          suggestion:
-            'The name "master" is reserved for the base .env file. Use a different name (e.g., main, primary, base)',
+          message: messages.commands.env.new.master_reserved,
+          suggestion: messages.commands.env.new.master_reserved_suggestion,
           exit: true,
         });
         return;
@@ -59,8 +57,8 @@ env_cmd.addCommand(
 
       if (Object.keys(env_map).length === 0) {
         render_error({
-          message: `No environment variables found in "${env_file_name}"`,
-          suggestion: "Add some KEY=VALUE pairs to your .env file before creating a new environment",
+          message: messages.commands.env.new.no_env_vars(env_file_name),
+          suggestion: messages.commands.env.new.no_env_vars_suggestion,
           exit: true,
         });
         return;
@@ -101,7 +99,7 @@ env_cmd.addCommand(
       write_env(filtered_env_map, new_env_file_name).match(
         () => {
           render_success({
-            message: `Created new environment "${validated_environment}"\n\nRun "dotman env use ${validated_environment}" to switch to this environment`,
+            message: messages.commands.env.new.success(validated_environment),
           });
         },
         (err) => {
@@ -117,7 +115,7 @@ env_cmd.addCommand(
 
 env_cmd.addCommand(
   new Command("use")
-    .description("Set the current environment to use for operations")
+    .description(messages.commands.env.use.description)
     .argument("<environment>", "name of the environment to use")
     .action(async (environment: string) => {
       const all_environments_res = await get_all_environments();
@@ -136,8 +134,8 @@ env_cmd.addCommand(
 
       if (!user_environment_found) {
         render_error({
-          message: `Environment "${environment}" not found`,
-          suggestion: `List all environments by running "dotman env list"`,
+          message: messages.commands.env.use.not_found(environment),
+          suggestion: messages.commands.env.use.not_found_suggestion,
           exit: true,
         });
         return;
@@ -146,7 +144,7 @@ env_cmd.addCommand(
       const current_env_res = await get_current_environment();
       if (current_env_res.isOk() && current_env_res.value === environment) {
         render_success({
-          message: `Already using environment "${environment}"`,
+          message: messages.commands.env.use.already_using(environment),
         });
         return;
       }
@@ -159,13 +157,13 @@ env_cmd.addCommand(
       }
 
       render_success({
-        message: `Changed the current environment to "${environment}"`,
+        message: messages.commands.env.use.success(environment),
       });
     }),
 );
 
 env_cmd.addCommand(
-  new Command("list").description("List all environments").action(async () => {
+  new Command("list").description(messages.commands.env.list.description).action(async () => {
     const all_environments_res = await get_all_environments();
 
     if (all_environments_res.isErr()) {
@@ -181,8 +179,8 @@ env_cmd.addCommand(
 
     if (all_environments.length === 0) {
       render_error({
-        message: "No environments found",
-        suggestion: 'Create a new environment with "dotman env new <name>" or add a .env file',
+        message: messages.commands.env.list.no_environments,
+        suggestion: messages.commands.env.list.no_environments_suggestion,
         exit: true,
       });
       return;
@@ -203,17 +201,17 @@ env_cmd.addCommand(
     const formatted_list = all_environments
       .map((env) => {
         const is_current = current_environment === env;
-        const icon = is_current ? "★" : "•";
-        const file_indicator = env === "master" ? " (.env)" : "";
-        const current_indicator = is_current ? " (current)" : "";
+        const icon = is_current ? messages.commands.env.list.current_icon : messages.commands.env.list.other_icon;
+        const file_indicator = env === "master" ? messages.commands.env.list.base_env_indicator : "";
+        const current_indicator = is_current ? messages.commands.env.list.current_indicator : "";
         return `  ${icon} ${env}${file_indicator}${current_indicator}`;
       })
       .join("\n");
 
-    const count_text = `${all_environments.length} ${all_environments.length === 1 ? "environment" : "environments"} found`;
+    const count_text = messages.commands.env.list.count(all_environments.length);
 
     render_success({
-      message: `Available Environments:\n${formatted_list}\n\n${count_text}`,
+      message: `${messages.commands.env.list.header}\n${formatted_list}\n\n${count_text}`,
     });
   }),
 );

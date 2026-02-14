@@ -4,6 +4,7 @@ import path from "node:path";
 import { okAsync } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 let temp_dir: string;
 let original_cwd: string;
@@ -128,7 +129,7 @@ describe("CLI Integration", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Synced with remote",
+          message: messages.commands.pull.success,
         }),
       );
     });
@@ -183,7 +184,7 @@ describe("CLI Integration", () => {
       expect(mock_storage_client.set_project).toHaveBeenCalled();
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Pushed latest changes to remote",
+          message: messages.commands.push.success,
         }),
       );
     });

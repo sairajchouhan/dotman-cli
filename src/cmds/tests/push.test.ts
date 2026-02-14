@@ -2,6 +2,7 @@ import { errAsync, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 const mock_opts_with_globals = vi.fn();
 const mock_get_current_environment = vi.fn();
@@ -142,8 +143,8 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'No environment variables found in ".env.dev"',
-          suggestion: expect.stringContaining("Add some KEY=VALUE pairs"),
+          message: messages.commands.push.no_env_vars(".env.dev"),
+          suggestion: messages.commands.push.no_env_vars_suggestion,
           exit: true,
         }),
       );
@@ -240,7 +241,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("No custom environment variables"),
+          message: messages.commands.push.no_custom_env_vars(".env.dev"),
           exit: true,
         }),
       );
@@ -264,7 +265,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Everything up to date",
+          message: messages.commands.push.up_to_date,
         }),
       );
     });
@@ -307,7 +308,7 @@ describe("push_cmd", () => {
       expect(storage_client.set_project).toHaveBeenCalled();
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Pushed latest changes to remote",
+          message: messages.commands.push.success,
         }),
       );
     });

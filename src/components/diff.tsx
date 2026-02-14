@@ -1,19 +1,17 @@
 import { Box, render, Text } from "ink";
 import type { DiffResult } from "@/lib/diff";
 import { get_value_change_indicator, mask_secret_value } from "@/lib/utils";
+import { messages } from "@/messages";
 import { render_success } from "./errors";
 
 export function render_diff(diff_result: DiffResult, context: "push" | "pull" = "push") {
   if (diff_result.total_count === 0) {
-    render_success({ message: "Everything up to date" });
+    render_success({ message: messages.diff.up_to_date });
     return;
   }
 
-  const header_text = context === "push" ? "Changes to be pushed:" : "Changes to be pulled:";
-  const tip_text =
-    context === "push"
-      ? "💡 Use --apply to push these changes to remote"
-      : "💡 Use --apply to pull these changes to your env file";
+  const header_text = context === "push" ? messages.diff.push_header : messages.diff.pull_header;
+  const tip_text = context === "push" ? messages.diff.push_tip : messages.diff.pull_tip;
 
   render(
     <Box flexDirection="column" paddingY={1}>
@@ -33,7 +31,7 @@ export function render_diff(diff_result: DiffResult, context: "push" | "pull" = 
               <Text>
                 {change.key}={mask_secret_value(change.new_value || "")}
               </Text>
-              <Text color="green"> (added)</Text>
+              <Text color="green"> {messages.diff.added_label}</Text>
             </>
           )}
           {change.type === "modified" && (
@@ -53,7 +51,7 @@ export function render_diff(diff_result: DiffResult, context: "push" | "pull" = 
                 -{" "}
               </Text>
               <Text>{change.key}</Text>
-              <Text color="red"> (deleted)</Text>
+              <Text color="red"> {messages.diff.deleted_label}</Text>
             </>
           )}
         </Box>
@@ -61,8 +59,12 @@ export function render_diff(diff_result: DiffResult, context: "push" | "pull" = 
 
       <Box marginTop={1}>
         <Text color="cyan">
-          {diff_result.total_count} changes total ({diff_result.added_count} added, {diff_result.modified_count}{" "}
-          modified, {diff_result.deleted_count} deleted)
+          {messages.diff.summary(
+            diff_result.total_count,
+            diff_result.added_count,
+            diff_result.modified_count,
+            diff_result.deleted_count,
+          )}
         </Text>
       </Box>
 

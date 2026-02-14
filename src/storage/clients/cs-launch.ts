@@ -144,7 +144,7 @@ export class ContentstackLaunchStorageClient implements StorageClient {
 
   private launch_fetch<T>(path: string, options?: RequestInit): ResultAsync<T, CustomError> {
     const url = `${this.env_map.CS_LAUNCH_API_URL}${path}`;
-    const method = options?.method ?? "GET";
+    const _method = options?.method ?? "GET";
 
     return ResultAsync.fromPromise(
       fetch(url, {
