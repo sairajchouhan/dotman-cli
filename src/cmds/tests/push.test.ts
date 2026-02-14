@@ -183,7 +183,7 @@ describe("push_cmd", () => {
       );
       const storage_client = create_mock_storage_client();
       (storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(
-        errAsync(new CustomError("Vault access denied")),
+        errAsync(new CustomError("Remote access denied")),
       );
       mock_create_storage_client.mockReturnValue(okAsync(storage_client));
 
@@ -191,7 +191,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Vault access denied",
+          message: "Remote access denied",
           exit: true,
         }),
       );
@@ -307,7 +307,7 @@ describe("push_cmd", () => {
       expect(storage_client.set_project).toHaveBeenCalled();
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Updated vault with latest changes",
+          message: "Pushed latest changes to remote",
         }),
       );
     });

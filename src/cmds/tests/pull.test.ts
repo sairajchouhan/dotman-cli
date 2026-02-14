@@ -70,7 +70,7 @@ describe("pull_cmd", () => {
           env_file_name: ".env.staging",
         }),
       );
-      const storage_client = create_mock_storage_client([{ id: "1", title: "API_KEY", value: "vault-value" }]);
+      const storage_client = create_mock_storage_client([{ id: "1", title: "API_KEY", value: "remote-value" }]);
       mock_create_storage_client.mockReturnValue(okAsync(storage_client));
 
       await pull_cmd.parseAsync(["node", "pull"]);
@@ -89,7 +89,7 @@ describe("pull_cmd", () => {
           env_file_name: ".env.production",
         }),
       );
-      const storage_client = create_mock_storage_client([{ id: "1", title: "API_KEY", value: "vault-value" }]);
+      const storage_client = create_mock_storage_client([{ id: "1", title: "API_KEY", value: "remote-value" }]);
       mock_create_storage_client.mockReturnValue(okAsync(storage_client));
 
       await pull_cmd.parseAsync(["node", "pull"]);
@@ -165,7 +165,7 @@ describe("pull_cmd", () => {
       );
       const storage_client = create_mock_storage_client();
       (storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(
-        errAsync(new CustomError("Vault access denied")),
+        errAsync(new CustomError("Remote access denied")),
       );
       mock_create_storage_client.mockReturnValue(okAsync(storage_client));
 
@@ -173,7 +173,7 @@ describe("pull_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Vault access denied",
+          message: "Remote access denied",
           exit: true,
         }),
       );
@@ -181,7 +181,7 @@ describe("pull_cmd", () => {
   });
 
   describe("client env keys warning", () => {
-    it("renders warning when client env keys found in vault", async () => {
+    it("renders warning when client env keys found in remote", async () => {
       mock_opts_with_globals.mockReturnValue({ apply: false, env: "dev" });
       mock_read_env_files.mockReturnValue(
         okAsync({
@@ -206,8 +206,8 @@ describe("pull_cmd", () => {
     });
   });
 
-  describe("empty vault", () => {
-    it("renders error when vault has no secrets", async () => {
+  describe("empty remote", () => {
+    it("renders error when remote has no secrets", async () => {
       mock_opts_with_globals.mockReturnValue({ apply: false, env: "dev" });
       mock_read_env_files.mockReturnValue(
         okAsync({
@@ -295,7 +295,7 @@ describe("pull_cmd", () => {
       expect(mock_write_env).toHaveBeenCalledWith({ NEW_KEY: "new" }, ".env.dev");
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Synced with Vault",
+          message: "Synced with remote",
         }),
       );
     });

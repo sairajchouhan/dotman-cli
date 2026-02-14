@@ -12,7 +12,7 @@ export function render_diff(diff_result: DiffResult, context: "push" | "pull" = 
   const header_text = context === "push" ? "Changes to be pushed:" : "Changes to be pulled:";
   const tip_text =
     context === "push"
-      ? "💡 Use --apply to push these changes to your vault"
+      ? "💡 Use --apply to push these changes to remote"
       : "💡 Use --apply to pull these changes to your env file";
 
   render(

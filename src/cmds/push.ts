@@ -10,7 +10,7 @@ import { create_storage_client } from "@/storage/client";
 import { program } from "../program";
 
 export const push_cmd = new Command("push")
-  .description("Push local environment variables to your secret vault")
+  .description("Push local environment variables to remote")
   .action(async () => {
     const opts = program.optsWithGlobals();
     const apply: boolean = opts.apply;
@@ -126,7 +126,7 @@ export const push_cmd = new Command("push")
       }
 
       storage_client.set_project(project, environment).match(
-        () => render_success({ message: "Updated vault with latest changes" }),
+        () => render_success({ message: "Pushed latest changes to remote" }),
         (err) => {
           render_error({
             message: err.message,

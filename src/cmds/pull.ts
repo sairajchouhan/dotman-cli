@@ -8,7 +8,7 @@ import { program } from "@/program";
 import { create_storage_client } from "@/storage/client";
 
 export const pull_cmd = new Command("pull")
-  .description("Pull environment variables from your secret vault to local files")
+  .description("Pull environment variables from remote to local files")
   .action(async () => {
     const opts = program.optsWithGlobals();
     const apply: boolean = opts.apply;
@@ -94,7 +94,7 @@ export const pull_cmd = new Command("pull")
         return;
       }
 
-      render_success({ message: "Synced with Vault" });
+      render_success({ message: "Synced with remote" });
     } else {
       render_diff(diff_result, "pull");
     }

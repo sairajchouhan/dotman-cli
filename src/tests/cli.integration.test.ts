@@ -83,7 +83,7 @@ describe("CLI Integration", () => {
   }
 
   describe("pull workflow", () => {
-    it("pulls secrets from vault and shows diff", async () => {
+    it("pulls secrets from remote and shows diff", async () => {
       await create_env_file({
         OP_SERVICE_ACCOUNT_TOKEN: "test-token",
         OP_VAULT_NAME: "test-vault",
@@ -91,12 +91,12 @@ describe("CLI Integration", () => {
         API_KEY: "old-value",
       });
 
-      const vault_project: Project = {
+      const remote_project: Project = {
         id: "1",
         title: "test-project",
         secrets: [{ id: "s1", title: "API_KEY", value: "new-value" }],
       };
-      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
+      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
       mock_create_storage_client.mockResolvedValue(okAsync(mock_storage_client));
       mock_opts_with_globals.mockReturnValue({ apply: false, env: undefined });
 
@@ -115,12 +115,12 @@ describe("CLI Integration", () => {
         OLD_KEY: "old-value",
       });
 
-      const vault_project: Project = {
+      const remote_project: Project = {
         id: "1",
         title: "test-project",
         secrets: [{ id: "s1", title: "NEW_KEY", value: "new-value" }],
       };
-      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
+      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
       mock_create_storage_client.mockResolvedValue(okAsync(mock_storage_client));
       mock_opts_with_globals.mockReturnValue({ apply: true, env: undefined });
 
@@ -128,14 +128,14 @@ describe("CLI Integration", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Synced with Vault",
+          message: "Synced with remote",
         }),
       );
     });
   });
 
   describe("push workflow", () => {
-    it("pushes local env to vault and shows diff", async () => {
+    it("pushes local env to remote and shows diff", async () => {
       await create_env_file({
         OP_SERVICE_ACCOUNT_TOKEN: "test-token",
         OP_VAULT_NAME: "test-vault",
@@ -143,13 +143,13 @@ describe("CLI Integration", () => {
         API_KEY: "local-value",
       });
 
-      const vault_project: Project = {
+      const remote_project: Project = {
         id: "1",
         title: "test-project",
         secrets: [],
       };
-      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
-      (mock_storage_client.set_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
+      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
+      (mock_storage_client.set_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
       mock_create_storage_client.mockResolvedValue(okAsync(mock_storage_client));
       mock_opts_with_globals.mockReturnValue({ apply: false, env: undefined });
 
@@ -168,13 +168,13 @@ describe("CLI Integration", () => {
         API_KEY: "local-value",
       });
 
-      const vault_project: Project = {
+      const remote_project: Project = {
         id: "1",
         title: "test-project",
         secrets: [],
       };
-      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
-      (mock_storage_client.set_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
+      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
+      (mock_storage_client.set_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
       mock_create_storage_client.mockResolvedValue(okAsync(mock_storage_client));
       mock_opts_with_globals.mockReturnValue({ apply: true, env: undefined });
 
@@ -183,7 +183,7 @@ describe("CLI Integration", () => {
       expect(mock_storage_client.set_project).toHaveBeenCalled();
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Updated vault with latest changes",
+          message: "Pushed latest changes to remote",
         }),
       );
     });
@@ -198,12 +198,12 @@ describe("CLI Integration", () => {
       });
       await create_env_file({ API_KEY: "staging-value" }, "staging");
 
-      const vault_project: Project = {
+      const remote_project: Project = {
         id: "1",
         title: "test-project__staging",
         secrets: [{ id: "s1", title: "API_KEY", value: "staging-value" }],
       };
-      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(vault_project));
+      (mock_storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(okAsync(remote_project));
       mock_create_storage_client.mockResolvedValue(okAsync(mock_storage_client));
       mock_opts_with_globals.mockReturnValue({ apply: false, env: "staging" });
 

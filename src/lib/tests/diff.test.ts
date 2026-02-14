@@ -58,10 +58,10 @@ describe("calculate_push_diff", () => {
 describe("calculate_pull_diff", () => {
   it("identifies added, modified, and deleted entries", () => {
     const local_env = { LOCAL_ONLY: "old", COMMON_KEY: "local" };
-    const vault_env = { COMMON_KEY: "remote", NEW_REMOTE: "value" };
+    const remote_env = { COMMON_KEY: "remote", NEW_REMOTE: "value" };
     const client_keys: string[] = [];
 
-    const diff = calculate_pull_diff(local_env, vault_env, client_keys);
+    const diff = calculate_pull_diff(local_env, remote_env, client_keys);
 
     expect(diff.total_count).toBe(3);
     expect(diff.added_count).toBe(1);
@@ -93,10 +93,10 @@ describe("calculate_pull_diff", () => {
 
   it("ignores deletions for client env keys", () => {
     const local_env = { CLIENT_KEY: "keep" };
-    const vault_env: Record<string, string> = {};
+    const remote_env: Record<string, string> = {};
     const client_keys = ["CLIENT_KEY"];
 
-    const diff = calculate_pull_diff(local_env, vault_env, client_keys);
+    const diff = calculate_pull_diff(local_env, remote_env, client_keys);
 
     expect(diff.total_count).toBe(0);
     expect(diff.changes).toHaveLength(0);
@@ -104,9 +104,9 @@ describe("calculate_pull_diff", () => {
 
   it("returns no changes when environments are identical", () => {
     const local_env = { KEY: "value" };
-    const vault_env = { KEY: "value" };
+    const remote_env = { KEY: "value" };
 
-    const diff = calculate_pull_diff(local_env, vault_env, []);
+    const diff = calculate_pull_diff(local_env, remote_env, []);
 
     expect(diff.total_count).toBe(0);
     expect(diff.changes).toHaveLength(0);

@@ -5,6 +5,7 @@ import { validate_environment_name } from "@/lib/environment";
 import { env_cmd } from "./cmds/env.ts";
 import { init_cmd } from "./cmds/init.ts";
 import { load_cmd } from "./cmds/load.ts";
+import { providers_cmd } from "./cmds/providers.ts";
 import { pull_cmd } from "./cmds/pull.ts";
 import { push_cmd } from "./cmds/push.ts";
 import { program } from "./program.ts";
@@ -38,4 +39,5 @@ program
   .addCommand(push_cmd)
   .addCommand(env_cmd)
   .addCommand(load_cmd)
+  .addCommand(providers_cmd)
   .parse();
