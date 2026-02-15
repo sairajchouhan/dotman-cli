@@ -47,7 +47,7 @@ export function calculate_push_diff(
   }
 
   for (const [secret_key, secret_value] of secrets_map) {
-    if (secret_value && !filtered_env_map[secret_key]) {
+    if (secret_value && !(secret_key in filtered_env_map)) {
       changes.push({
         type: "deleted",
         key: secret_key,
@@ -68,7 +68,7 @@ export function calculate_push_diff(
 
 export function calculate_pull_diff(
   local_env_map: Record<string, string>,
-  vault_secrets_map: Record<string, string>,
+  remote_secrets_map: Record<string, string>,
   client_env_keys: string[],
 ): DiffResult {
   const changes: DiffChange[] = [];
@@ -76,28 +76,28 @@ export function calculate_pull_diff(
   let modified_count = 0;
   let deleted_count = 0;
 
-  for (const [vault_key, vault_value] of Object.entries(vault_secrets_map)) {
-    const local_value = local_env_map[vault_key];
-    if (!local_value) {
+  for (const [remote_key, remote_value] of Object.entries(remote_secrets_map)) {
+    const local_value = local_env_map[remote_key];
+    if (!(remote_key in local_env_map)) {
       changes.push({
         type: "added",
-        key: vault_key,
-        new_value: vault_value,
+        key: remote_key,
+        new_value: remote_value,
       });
       added_count++;
-    } else if (local_value !== vault_value) {
+    } else if (local_value !== remote_value) {
       changes.push({
         type: "modified",
-        key: vault_key,
+        key: remote_key,
         old_value: local_value,
-        new_value: vault_value,
+        new_value: remote_value,
       });
       modified_count++;
     }
   }
 
   for (const [local_key, local_value] of Object.entries(local_env_map)) {
-    if (!vault_secrets_map[local_key] && !client_env_keys.includes(local_key)) {
+    if (!(local_key in remote_secrets_map) && !client_env_keys.includes(local_key)) {
       changes.push({
         type: "deleted",
         key: local_key,

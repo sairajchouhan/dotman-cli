@@ -2,6 +2,7 @@ import { err, errAsync, ok, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 const mock_validate_environment_name = vi.fn();
 const mock_get_all_environments = vi.fn();
@@ -46,6 +47,7 @@ function create_mock_storage_client(): StorageClient {
     set_project: vi.fn(() => okAsync(project)),
     create_project: vi.fn(() => okAsync(project)),
     get_client_env_keys: vi.fn(() => ["OP_SERVICE_ACCOUNT_TOKEN", "OP_VAULT_NAME", "DOTMAN_PROJECT_NAME"]),
+    validate_secrets: vi.fn(() => ok(undefined)),
   };
 }
 
@@ -76,12 +78,7 @@ describe("env_cmd", () => {
       expect(mock_write_env).toHaveBeenCalledWith({ API_KEY: "" }, ".env.staging");
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining('Created new environment "staging"'),
-        }),
-      );
-      expect(mock_render_success).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('Run "dotman env use staging" to switch to this environment'),
+          message: messages.commands.env.new.success("staging"),
         }),
       );
     });
@@ -91,8 +88,8 @@ describe("env_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Cannot create environment named "master"',
-          suggestion: expect.stringContaining("reserved for the base .env file"),
+          message: messages.commands.env.new.master_reserved,
+          suggestion: messages.commands.env.new.master_reserved_suggestion,
           exit: true,
         }),
       );
@@ -137,7 +134,7 @@ describe("env_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'No environment variables found in ".env"',
+          message: messages.commands.env.new.no_env_vars(".env"),
           exit: true,
         }),
       );
@@ -226,7 +223,7 @@ describe("env_cmd", () => {
       expect(mock_save_current_env).toHaveBeenCalledWith("staging");
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Changed the current environment to "staging"',
+          message: messages.commands.env.use.success("staging"),
         }),
       );
     });
@@ -251,8 +248,8 @@ describe("env_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Environment "nonexistent" not found',
-          suggestion: expect.stringContaining("dotman env list"),
+          message: messages.commands.env.use.not_found("nonexistent"),
+          suggestion: messages.commands.env.use.not_found_suggestion,
           exit: true,
         }),
       );
@@ -314,7 +311,7 @@ describe("env_cmd", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("1 environment found"),
+          message: expect.stringContaining(messages.commands.env.list.count(1)),
         }),
       );
     });
@@ -327,7 +324,7 @@ describe("env_cmd", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("3 environments found"),
+          message: expect.stringContaining(messages.commands.env.list.count(3)),
         }),
       );
     });
@@ -352,8 +349,8 @@ describe("env_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "No environments found",
-          suggestion: expect.stringContaining("dotman env new"),
+          message: messages.commands.env.list.no_environments,
+          suggestion: messages.commands.env.list.no_environments_suggestion,
           exit: true,
         }),
       );

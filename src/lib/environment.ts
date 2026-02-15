@@ -3,6 +3,7 @@ import path from "node:path";
 import { err, errAsync, ok, type Result, ResultAsync } from "neverthrow";
 import { project_environment_separator } from "@/constants";
 import { CustomError } from "@/lib/error";
+import { messages } from "@/messages";
 import { safe_fs_read_dir, safe_fs_read_file, safe_fs_write_file, safe_json_parse, safe_json_stringify } from "./safe";
 import { get_state_file_path } from "./utils";
 
@@ -12,8 +13,8 @@ function validate_project_directory(cwd: string): ResultAsync<void, CustomError>
     fs.access(env_file_path),
     () =>
       // TODO:  we definitely can improve this check of validating project directory
-      new CustomError("Not a valid dotman project directory", {
-        suggestion: "Ensure you are in a directory with a .env file, or run 'dotman init' to initialize a new project",
+      new CustomError(messages.environment.not_valid_project, {
+        suggestion: messages.environment.not_valid_project_suggestion,
       }),
   ).map(() => undefined);
 }
@@ -23,16 +24,16 @@ export function validate_environment_name(environment: string): Result<string, C
 
   if (trimmed.length === 0) {
     return err(
-      new CustomError("Environment name cannot be empty", {
-        suggestion: "Provide a valid environment name (e.g., dev, staging, prod)",
+      new CustomError(messages.environment.name_empty, {
+        suggestion: messages.environment.name_empty_suggestion,
       }),
     );
   }
 
   if (trimmed.includes(project_environment_separator)) {
     return err(
-      new CustomError(`Environment name cannot contain the separator "${project_environment_separator}"`, {
-        suggestion: `Remove "${project_environment_separator}" from the environment name`,
+      new CustomError(messages.environment.name_contains_separator, {
+        suggestion: messages.environment.name_contains_separator_suggestion,
       }),
     );
   }
@@ -42,16 +43,16 @@ export function validate_environment_name(environment: string): Result<string, C
 
   if (found_invalid_chars.length > 0) {
     return err(
-      new CustomError(`Environment name contains invalid characters: ${found_invalid_chars.join(", ")}`, {
-        suggestion: "Use only alphanumeric characters, hyphens, and underscores",
+      new CustomError(messages.environment.name_invalid_chars(found_invalid_chars.join(", ")), {
+        suggestion: messages.environment.name_invalid_chars_suggestion,
       }),
     );
   }
 
   if (trimmed.includes("..")) {
     return err(
-      new CustomError('Environment name cannot contain ".."', {
-        suggestion: "Remove path traversal patterns from the environment name",
+      new CustomError(messages.environment.name_path_traversal, {
+        suggestion: messages.environment.name_path_traversal_suggestion,
       }),
     );
   }
@@ -114,12 +115,12 @@ export function get_all_environments(): ResultAsync<string[], CustomError> {
 
           const env_name = file.name.slice(5);
           if (env_name.length === 0) {
-            return err(new CustomError("Environment name cannot be empty"));
+            return err(new CustomError(messages.environment.name_empty));
           }
 
           // Filter out .env.master since "master" is reserved for the base .env file
           if (env_name === "master") {
-            return err(new CustomError("Environment name 'master' is reserved"));
+            return err(new CustomError(messages.environment.name_master_reserved));
           }
 
           return validate_environment_name(env_name);
@@ -136,7 +137,7 @@ export function get_all_environments(): ResultAsync<string[], CustomError> {
           return a.localeCompare(b);
         });
     })
-    .mapErr((err) => new CustomError("Failed to get all environments", { cause: err }));
+    .mapErr((err) => new CustomError(messages.environment.failed_to_get_all, { cause: err }));
 }
 
 export function get_current_environment(): ResultAsync<string, CustomError> {
@@ -146,7 +147,7 @@ export function get_current_environment(): ResultAsync<string, CustomError> {
         if (err.cause && (err.cause as NodeJS.ErrnoException).code === "ENOENT") {
           return ResultAsync.fromSafePromise(Promise.resolve("master"));
         }
-        return errAsync(new CustomError("Failed to read environment state file", { cause: err }));
+        return errAsync(new CustomError(messages.environment.failed_to_read_state, { cause: err }));
       })
       .andThen((file_content) => {
         const parse_result = safe_json_parse(String(file_content));

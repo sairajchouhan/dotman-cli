@@ -1,7 +1,8 @@
-import { errAsync, okAsync } from "neverthrow";
+import { errAsync, ok, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 const mock_select = vi.fn();
 const mock_group = vi.fn();
@@ -18,6 +19,7 @@ const mock_storage_client: StorageClient = {
   set_project: vi.fn(() => okAsync({ id: "1", title: "test", secrets: [] } as Project)),
   create_project: vi.fn(() => okAsync({ id: "1", title: "test", secrets: [] } as Project)),
   get_client_env_keys: vi.fn(() => []),
+  validate_secrets: vi.fn(() => ok(undefined)),
 };
 
 const mock_provider_create = vi.fn();
@@ -134,7 +136,7 @@ describe("init_cmd", () => {
 
       await init_cmd.parseAsync(["node", "init"]);
 
-      expect(mock_cancel).toHaveBeenCalledWith("Operation cancelled");
+      expect(mock_cancel).toHaveBeenCalledWith(messages.commands.init.operation_cancelled);
       expect(mock_write_env).not.toHaveBeenCalled();
     });
 
@@ -201,7 +203,7 @@ describe("init_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Failed to read .env file",
+          message: messages.commands.init.read_env_failed,
           exit: true,
         }),
       );
@@ -253,7 +255,7 @@ describe("init_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Invalid provider selected",
+          message: messages.commands.init.invalid_provider,
           exit: true,
         }),
       );

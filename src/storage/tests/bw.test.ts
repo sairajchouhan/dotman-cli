@@ -161,7 +161,7 @@ describe("BitwardenStorageClient", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value.secrets).toHaveLength(1);
-        expect(result.value.secrets[0].title).toBe("KEY1");
+        expect(result.value.secrets[0]?.title).toBe("KEY1");
       }
     });
 
