@@ -76,8 +76,7 @@ export const messages = {
       read_env_failed: "Failed to read .env file",
       field_value_fallback: (key: string) => `Enter value for ${key}:`,
       validation_fallback: "Invalid value",
-      save_env_state_failed: (error_message: string) =>
-        `Could not save current environment state: ${error_message}`,
+      save_env_state_failed: (error_message: string) => `Could not save current environment state: ${error_message}`,
       success: (project_name: string, provider_label: string) =>
         `Successfully initialized project "${project_name}" with ${provider_label}`,
     },
