@@ -139,7 +139,7 @@ export const PROVIDER_REGISTRY = {
         hint: "e.g., 'my-app', 'api-service'",
       },
       CS_LAUNCH_AUTH_TOKEN: {
-        description: "Enter your Contentstack Launch authtoken",
+        description: "Enter your Contentstack Launch auth token",
         hint: "Obtain by logging in via the Content Management API login endpoint",
         doc_url: "https://www.contentstack.com/docs/developers/apis/launch-api#how-to-get-authtoken",
         is_secret: true,

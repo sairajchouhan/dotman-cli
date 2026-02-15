@@ -47,7 +47,7 @@ export function calculate_push_diff(
   }
 
   for (const [secret_key, secret_value] of secrets_map) {
-    if (secret_value && !filtered_env_map[secret_key]) {
+    if (secret_value && !(secret_key in filtered_env_map)) {
       changes.push({
         type: "deleted",
         key: secret_key,
@@ -78,7 +78,7 @@ export function calculate_pull_diff(
 
   for (const [remote_key, remote_value] of Object.entries(remote_secrets_map)) {
     const local_value = local_env_map[remote_key];
-    if (!local_value) {
+    if (!(remote_key in local_env_map)) {
       changes.push({
         type: "added",
         key: remote_key,
@@ -97,7 +97,7 @@ export function calculate_pull_diff(
   }
 
   for (const [local_key, local_value] of Object.entries(local_env_map)) {
-    if (!remote_secrets_map[local_key] && !client_env_keys.includes(local_key)) {
+    if (!(local_key in remote_secrets_map) && !client_env_keys.includes(local_key)) {
       changes.push({
         type: "deleted",
         key: local_key,
