@@ -80,6 +80,16 @@ export const push_cmd = new Command("push").description(messages.commands.push.d
     return;
   }
 
+  const validation_res = storage_client.validate_secrets(filtered_env_map);
+  if (validation_res.isErr()) {
+    render_error({
+      message: validation_res.error.message,
+      suggestion: validation_res.error.suggestion ?? `Fix the issues in "${env_file_name}" before pushing`,
+      exit: true,
+    });
+    return;
+  }
+
   const project_res = await storage_client.get_project(environment);
 
   if (project_res.isErr()) {

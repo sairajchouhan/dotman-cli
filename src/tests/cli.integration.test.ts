@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { okAsync } from "neverthrow";
+import { ok, okAsync } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project, StorageClient } from "@/lib/types";
 import { messages } from "@/messages";
@@ -15,6 +15,7 @@ const mock_storage_client: StorageClient = {
   set_project: vi.fn(),
   create_project: vi.fn(),
   get_client_env_keys: vi.fn(() => ["OP_SERVICE_ACCOUNT_TOKEN", "OP_VAULT_NAME", "DOTMAN_PROJECT_NAME"]),
+  validate_secrets: vi.fn(() => ok(undefined)),
 };
 
 const mock_create_storage_client = vi.fn();

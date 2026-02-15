@@ -1,4 +1,4 @@
-import { errAsync, okAsync } from "neverthrow";
+import { errAsync, ok, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
@@ -53,6 +53,7 @@ function create_mock_storage_client(secrets: Array<{ id: string; title: string; 
     set_project: vi.fn(() => okAsync(project)),
     create_project: vi.fn(() => okAsync(project)),
     get_client_env_keys: vi.fn(() => ["OP_SERVICE_ACCOUNT_TOKEN", "OP_VAULT_NAME", "DOTMAN_PROJECT_NAME"]),
+    validate_secrets: vi.fn(() => ok(undefined)),
   };
 }
 

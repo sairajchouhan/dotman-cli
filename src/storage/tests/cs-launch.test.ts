@@ -26,8 +26,11 @@ function make_json_response(data: unknown, status = 200) {
   });
 }
 
-function make_error_response(status: number) {
-  return new Response(null, { status });
+function make_error_response(status: number, body?: unknown) {
+  return new Response(body ? JSON.stringify(body) : null, {
+    status,
+    headers: body ? { "Content-Type": "application/json" } : {},
+  });
 }
 
 // biome-ignore lint/nursery/noSecrets: test class name is not a secret
@@ -331,6 +334,78 @@ describe("ContentstackLaunchStorageClient", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.message).toContain("500");
+      }
+    });
+
+    it("parses Launch API error response into readable messages", async () => {
+      mock_fetch
+        .mockResolvedValueOnce(
+          make_json_response({
+            environments: [{ uid: "env-1", name: "Default" }],
+          }),
+        )
+        .mockResolvedValueOnce(
+          make_json_response({
+            environment: {
+              uid: "env-1",
+              name: "Default",
+              environmentVariables: [],
+            },
+          }),
+        )
+        .mockResolvedValueOnce(
+          make_error_response(400, {
+            errors: [
+              {
+                "environmentVariables.0.value": {
+                  code: "launch.ENVIRONMENT.ENVIRONMENT_VARIABLES.VALUE.NOT_EMPTY",
+                  message: "Environment variable value should not be empty.",
+                },
+              },
+            ],
+            status: 400,
+          }),
+        );
+
+      const env_map = make_valid_env_map();
+      const client = new ContentstackLaunchStorageClient(env_map);
+      const project = {
+        id: "env-1",
+        title: "Default",
+        secrets: [{ id: "var-1", title: "KEY", value: "" }],
+      };
+
+      const result = await client.set_project(project, undefined);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain("400");
+        expect(result.error.suggestion).toBe("Environment variable value should not be empty.");
+      }
+    });
+  });
+
+  describe("validate_secrets", () => {
+    it("returns ok when all values are non-empty", () => {
+      const env_map = make_valid_env_map();
+      const client = new ContentstackLaunchStorageClient(env_map);
+
+      const result = client.validate_secrets({ API_KEY: "value", DB_URL: "postgres://..." });
+
+      expect(result.isOk()).toBe(true);
+    });
+
+    it("returns error listing keys with empty values", () => {
+      const env_map = make_valid_env_map();
+      const client = new ContentstackLaunchStorageClient(env_map);
+
+      const result = client.validate_secrets({ FILLED: "value", EMPTY_ONE: "", EMPTY_TWO: "" });
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain("EMPTY_ONE");
+        expect(result.error.message).toContain("EMPTY_TWO");
+        expect(result.error.message).not.toContain("FILLED");
       }
     });
   });

@@ -1,8 +1,8 @@
-import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import { fetch } from "undici";
+import { err, errAsync, ok, okAsync, ResultAsync } from "neverthrow";
+import { fetch, type RequestInit } from "undici";
 import { toJSONSchema, z } from "zod";
 import { CustomError } from "@/lib/error";
-import type { Project, Secret, StorageClient } from "@/lib/types";
+import type { EnvMap, Project, Secret, StorageClient } from "@/lib/types";
 
 export const env_map_cs_launch_schema = z.looseObject({
   DOTMAN_PROJECT_NAME: z.string().min(1),
@@ -52,7 +52,14 @@ export class ContentstackLaunchStorageClient implements StorageClient {
           organization_uid: env_map.CS_LAUNCH_ORGANIZATION_UID,
         },
       }),
-      (err) => new CustomError("Could not connect to Contentstack Launch API", { cause: err as Error }),
+      (_err) => {
+        const err = _err as Error;
+        const root_cause = err?.cause instanceof Error ? err.cause : err;
+        return new CustomError("Could not connect to Contentstack Launch API", {
+          cause: err,
+          suggestion: root_cause?.message ?? "Check your network connection and CS_LAUNCH_API_URL",
+        });
+      },
     ).andThen((response) => {
       if (!response.ok) {
         return errAsync(
@@ -134,6 +141,23 @@ export class ContentstackLaunchStorageClient implements StorageClient {
     });
   }
 
+  public validate_secrets(env_map: EnvMap) {
+    const empty_keys = Object.entries(env_map)
+      .filter(([_, value]) => value === "")
+      .map(([key]) => key);
+
+    if (empty_keys.length > 0) {
+      return err(
+        new CustomError(
+          `Contentstack Launch does not allow empty values for environment variables: ${empty_keys.join(", ")}`,
+          { suggestion: "Set values for these variables or remove them before pushing" },
+        ),
+      );
+    }
+
+    return ok(undefined);
+  }
+
   public get_client_env_keys(): string[] {
     const properties = toJSONSchema(env_map_cs_launch_schema).properties;
     if (!properties) {
@@ -144,16 +168,16 @@ export class ContentstackLaunchStorageClient implements StorageClient {
 
   private launch_fetch<T>(path: string, options?: RequestInit): ResultAsync<T, CustomError> {
     const url = `${this.env_map.CS_LAUNCH_API_URL}${path}`;
-    const _method = options?.method ?? "GET";
+    const { headers: extra_headers, ...rest_options } = options ?? {};
 
     return ResultAsync.fromPromise(
       fetch(url, {
-        ...options,
+        ...rest_options,
         headers: {
           authtoken: this.env_map.CS_LAUNCH_AUTH_TOKEN,
           organization_uid: this.env_map.CS_LAUNCH_ORGANIZATION_UID,
           "Content-Type": "application/json",
-          ...options?.headers,
+          ...(extra_headers as Record<string, string>),
         },
       }),
       (err) =>
@@ -162,7 +186,16 @@ export class ContentstackLaunchStorageClient implements StorageClient {
         }),
     ).andThen((response) => {
       if (!response.ok) {
-        return errAsync(new CustomError(`Contentstack Launch API error (HTTP ${response.status})`));
+        return ResultAsync.fromPromise(
+          response.text(),
+          () => new CustomError(`Contentstack Launch API error (HTTP ${response.status})`),
+        ).andThen((body) => {
+          return errAsync(
+            new CustomError(`Contentstack Launch API error (HTTP ${response.status})`, {
+              suggestion: ContentstackLaunchStorageClient.parse_launch_api_error(body) ?? body,
+            }),
+          );
+        });
       }
       return ResultAsync.fromPromise(
         response.json() as Promise<T>,
@@ -176,6 +209,28 @@ export class ContentstackLaunchStorageClient implements StorageClient {
       return "Default";
     }
     return environment;
+  }
+
+  private static parse_launch_api_error(body: string): string | undefined {
+    try {
+      const parsed = JSON.parse(body) as { errors?: Record<string, { message?: string }>[] };
+      if (!Array.isArray(parsed.errors) || parsed.errors.length === 0) {
+        return undefined;
+      }
+
+      const messages: string[] = [];
+      for (const error_obj of parsed.errors) {
+        for (const detail of Object.values(error_obj)) {
+          if (detail?.message) {
+            messages.push(detail.message);
+          }
+        }
+      }
+
+      return messages.length > 0 ? [...new Set(messages)].join("\n") : undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   private get_launch_environment(environment: string | undefined): ResultAsync<LaunchEnvironment, CustomError> {

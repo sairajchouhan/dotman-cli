@@ -43,6 +43,7 @@ vi.mock("@/components/diff", () => ({
   render_diff: (diff: unknown, context?: string) => mock_render_diff(diff, context),
 }));
 
+import { ok } from "neverthrow";
 import { pull_cmd } from "@/cmds/pull";
 
 function create_mock_storage_client(secrets: Array<{ id: string; title: string; value: string }> = []): StorageClient {
@@ -53,6 +54,7 @@ function create_mock_storage_client(secrets: Array<{ id: string; title: string; 
     set_project: vi.fn(() => okAsync(project)),
     create_project: vi.fn(() => okAsync(project)),
     get_client_env_keys: vi.fn(() => ["OP_SERVICE_ACCOUNT_TOKEN", "OP_VAULT_NAME", "DOTMAN_PROJECT_NAME"]),
+    validate_secrets: vi.fn(() => ok(undefined)),
   };
 }
 

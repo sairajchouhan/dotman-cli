@@ -1,4 +1,4 @@
-import { errAsync, okAsync } from "neverthrow";
+import { errAsync, ok, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
@@ -19,6 +19,7 @@ const mock_storage_client: StorageClient = {
   set_project: vi.fn(() => okAsync({ id: "1", title: "test", secrets: [] } as Project)),
   create_project: vi.fn(() => okAsync({ id: "1", title: "test", secrets: [] } as Project)),
   get_client_env_keys: vi.fn(() => []),
+  validate_secrets: vi.fn(() => ok(undefined)),
 };
 
 const mock_provider_create = vi.fn();

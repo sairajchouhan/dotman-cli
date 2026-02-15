@@ -1,4 +1,4 @@
-import type { ResultAsync } from "neverthrow";
+import type { Result, ResultAsync } from "neverthrow";
 import type { CustomError } from "./error";
 
 export type EnvMap = Record<string, string>;
@@ -30,4 +30,5 @@ export interface StorageClient {
   set_project(project: Project, environment: string | undefined): ResultAsync<Project, CustomError>;
   create_project(environment: string | undefined): ResultAsync<Project, CustomError>;
   get_client_env_keys(): string[];
+  validate_secrets(env_map: EnvMap): Result<void, CustomError>;
 }
