@@ -52,10 +52,10 @@ describe("PROVIDER_REGISTRY", () => {
         const metadata = PROVIDER_REGISTRY.onepassword.get_field_metadata();
 
         expect(metadata.DOTMAN_PROJECT_NAME).toBeDefined();
-        expect(metadata.DOTMAN_PROJECT_NAME.description).toBeDefined();
+        expect(metadata.DOTMAN_PROJECT_NAME?.description).toBeDefined();
         expect(metadata.OP_VAULT_NAME).toBeDefined();
         expect(metadata.OP_SERVICE_ACCOUNT_TOKEN).toBeDefined();
-        expect(metadata.OP_SERVICE_ACCOUNT_TOKEN.doc_url).toBeDefined();
+        expect(metadata.OP_SERVICE_ACCOUNT_TOKEN?.doc_url).toBeDefined();
       });
     });
   });
@@ -105,7 +105,7 @@ describe("PROVIDER_REGISTRY", () => {
 
         expect(metadata.DOTMAN_PROJECT_NAME).toBeDefined();
         expect(metadata.BWS_ACCESS_TOKEN).toBeDefined();
-        expect(metadata.BWS_ACCESS_TOKEN.doc_url).toBeDefined();
+        expect(metadata.BWS_ACCESS_TOKEN?.doc_url).toBeDefined();
         expect(metadata.BWS_ORGANIZATION_ID).toBeDefined();
         expect(metadata.BWS_API_URL).toBeDefined();
         expect(metadata.BWS_IDENTITY_URL).toBeDefined();
@@ -158,12 +158,12 @@ describe("PROVIDER_REGISTRY", () => {
 
         expect(metadata.DOTMAN_PROJECT_NAME).toBeDefined();
         expect(metadata.CS_LAUNCH_AUTH_TOKEN).toBeDefined();
-        expect(metadata.CS_LAUNCH_AUTH_TOKEN.doc_url).toBeDefined();
-        expect(metadata.CS_LAUNCH_AUTH_TOKEN.is_secret).toBe(true);
+        expect(metadata.CS_LAUNCH_AUTH_TOKEN?.doc_url).toBeDefined();
+        expect(metadata.CS_LAUNCH_AUTH_TOKEN?.is_secret).toBe(true);
         expect(metadata.CS_LAUNCH_ORGANIZATION_UID).toBeDefined();
         expect(metadata.CS_LAUNCH_PROJECT_UID).toBeDefined();
         expect(metadata.CS_LAUNCH_API_URL).toBeDefined();
-        expect(metadata.CS_LAUNCH_API_URL.is_optional).toBe(true);
+        expect(metadata.CS_LAUNCH_API_URL?.is_optional).toBe(true);
       });
     });
   });

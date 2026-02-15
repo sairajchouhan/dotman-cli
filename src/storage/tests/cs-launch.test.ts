@@ -291,14 +291,14 @@ describe("ContentstackLaunchStorageClient", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value.secrets).toHaveLength(2);
-        expect(result.value.secrets[0].value).toBe("new-value");
+        expect(result.value.secrets[0]?.value).toBe("new-value");
       }
 
       // Verify the PUT call
-      const put_call = mock_fetch.mock.calls[2];
+      const put_call = mock_fetch.mock.calls[2]!;
       expect(put_call[0]).toContain("/environments/env-1");
-      expect(put_call[1].method).toBe("PUT");
-      const body = JSON.parse(put_call[1].body);
+      expect(put_call[1]?.method).toBe("PUT");
+      const body = JSON.parse(put_call[1]?.body as string);
       expect(body.environmentVariables).toHaveLength(2);
       expect(body.environmentVariables[0].key).toBe("API_KEY");
     });

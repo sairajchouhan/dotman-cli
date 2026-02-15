@@ -218,7 +218,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const call_args = mock_render_diff.mock.calls[0];
+      const call_args = mock_render_diff.mock.calls[0]!;
       expect(call_args[0].added_count).toBe(1);
     });
 
@@ -285,7 +285,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const call_args = mock_render_diff.mock.calls[0];
+      const call_args = mock_render_diff.mock.calls[0]!;
       expect(call_args[0].total_count).toBe(1);
       expect(call_args[0].modified_count).toBe(1);
     });
@@ -328,12 +328,12 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       expect(project.secrets).toHaveLength(1);
-      expect(project.secrets[0].title).toBe("NEW_KEY");
-      expect(project.secrets[0].value).toBe("new-value");
-      expect(project.secrets[0].id).toBe("generated-uuid");
+      expect(project.secrets[0]?.title).toBe("NEW_KEY");
+      expect(project.secrets[0]?.value).toBe("new-value");
+      expect(project.secrets[0]?.id).toBe("generated-uuid");
     });
 
     it("handles modified secrets correctly", async () => {
@@ -350,7 +350,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       const modified_secret = project.secrets.find((s) => s.title === "API_KEY");
       expect(modified_secret?.value).toBe("updated-value");
@@ -374,7 +374,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       expect(project.secrets).toHaveLength(1);
       expect(project.secrets.find((s) => s.title === "DELETE_KEY")).toBeUndefined();

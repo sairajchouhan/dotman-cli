@@ -82,7 +82,7 @@ describe("calculate_push_diff", () => {
 
     const pull_changes = diff.changes.filter((c) => c.key === "PULL");
     expect(pull_changes).toHaveLength(1);
-    expect(pull_changes[0].type).toBe("modified");
+    expect(pull_changes[0]?.type).toBe("modified");
   });
 });
 
