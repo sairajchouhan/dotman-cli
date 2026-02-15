@@ -12,6 +12,7 @@ const mock_read_env = vi.fn();
 const mock_write_env = vi.fn();
 const mock_render_error = vi.fn();
 const mock_render_success = vi.fn();
+const mock_render_warning = vi.fn();
 
 const mock_storage_client: StorageClient = {
   source: "mock",
@@ -40,6 +41,7 @@ vi.mock("@/lib/dotenv", () => ({
 vi.mock("@/components/errors", () => ({
   render_error: (opts: unknown) => mock_render_error(opts),
   render_success: (opts: unknown) => mock_render_success(opts),
+  render_warning: (opts: unknown) => mock_render_warning(opts),
 }));
 
 vi.mock("@/storage/providers", () => ({
