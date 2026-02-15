@@ -1,7 +1,7 @@
 import * as prompts from "@clack/prompts";
 import { Command } from "commander";
 import { errAsync, ResultAsync } from "neverthrow";
-import { render_error, render_success } from "@/components/errors";
+import { render_error, render_success, render_warning } from "@/components/errors";
 import { read_env, write_env } from "@/lib/dotenv";
 import { save_current_env } from "@/lib/environment";
 import { CustomError } from "@/lib/error";
@@ -177,8 +177,7 @@ export const init_cmd = new Command("init").description(messages.commands.init.d
   // Explicitly save the current environment as "master"
   const save_env_res = await save_current_env("master");
   if (save_env_res.isErr()) {
-    // Warn but don't fail, as this is just state preference
-    console.warn("Could not save current environment state:", save_env_res.error.message);
+    render_warning({ message: messages.commands.init.save_env_state_failed(save_env_res.error.message) });
   }
 
   render_success({

@@ -84,7 +84,7 @@ export const push_cmd = new Command("push").description(messages.commands.push.d
   if (validation_res.isErr()) {
     render_error({
       message: validation_res.error.message,
-      suggestion: validation_res.error.suggestion ?? `Fix the issues in "${env_file_name}" before pushing`,
+      suggestion: validation_res.error.suggestion ?? messages.commands.push.validation_failed_suggestion(env_file_name),
       exit: true,
     });
     return;

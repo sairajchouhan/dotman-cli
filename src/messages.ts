@@ -15,6 +15,7 @@ export const messages = {
       no_custom_env_vars: (file: string) => `No custom environment variables found in "${file}"`,
       no_custom_env_vars_suggestion:
         "Add some KEY=VALUE pairs apart from client environment vars to your .env file before pushing",
+      validation_failed_suggestion: (file: string) => `Fix the issues in "${file}" before pushing`,
       up_to_date: "Everything up to date",
       success: "Pushed latest changes to remote",
     },
@@ -75,6 +76,8 @@ export const messages = {
       read_env_failed: "Failed to read .env file",
       field_value_fallback: (key: string) => `Enter value for ${key}:`,
       validation_fallback: "Invalid value",
+      save_env_state_failed: (error_message: string) =>
+        `Could not save current environment state: ${error_message}`,
       success: (project_name: string, provider_label: string) =>
         `Successfully initialized project "${project_name}" with ${provider_label}`,
     },
