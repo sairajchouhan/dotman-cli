@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { project_environment_separator } from "@/constants";
 import { get_project_name, get_state_file_path, get_value_change_indicator, mask_secret_value } from "@/lib/utils";
+import { messages } from "@/messages";
 
 const original_xdg_state_home = process.env.XDG_STATE_HOME;
 let state_home_dir: string;
@@ -56,15 +57,15 @@ describe("mask_secret_value", () => {
 
 describe("get_value_change_indicator", () => {
   it("returns no change when values match", () => {
-    expect(get_value_change_indicator("abc", "abc")).toBe("(no change)");
+    expect(get_value_change_indicator("abc", "abc")).toBe(messages.utils.no_change);
   });
 
   it("includes length change when lengths differ", () => {
-    expect(get_value_change_indicator("abc", "abcd")).toBe("(length: 3 → 4)");
+    expect(get_value_change_indicator("abc", "abcd")).toBe(messages.utils.length_change(3, 4));
   });
 
   it("marks modification when values differ with same length", () => {
-    expect(get_value_change_indicator("abcd", "abce")).toBe("(modified)");
+    expect(get_value_change_indicator("abcd", "abce")).toBe(messages.utils.modified);
   });
 });
 

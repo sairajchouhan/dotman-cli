@@ -10,6 +10,7 @@ import {
   validate_environment_name,
 } from "@/lib/environment";
 import { get_state_file_path } from "@/lib/utils";
+import { messages } from "@/messages";
 
 const original_cwd = process.cwd();
 const original_xdg_state_home = process.env.XDG_STATE_HOME;
@@ -76,7 +77,7 @@ describe("validate_environment_name", () => {
     const result = validate_environment_name("   ");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe("Environment name cannot be empty");
+      expect(result.error.message).toBe(messages.environment.name_empty);
     }
   });
 
@@ -131,7 +132,7 @@ describe("save_current_env", () => {
       const result = await save_current_env("");
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Environment name cannot be empty");
+        expect(result.error.message).toBe(messages.environment.name_empty);
       }
     });
 
@@ -139,7 +140,7 @@ describe("save_current_env", () => {
       const result = await save_current_env("   ");
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Environment name cannot be empty");
+        expect(result.error.message).toBe(messages.environment.name_empty);
       }
     });
 

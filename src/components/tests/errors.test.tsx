@@ -11,11 +11,11 @@ vi.mock("ink", () => ({
 const { render_error, render_info, render_success, render_warning } = await import("@/components/errors");
 
 describe("error rendering functions", () => {
-  let mock_exit: ReturnType<typeof vi.spyOn>;
+  let mock_exit: { mockRestore: () => void };
 
   beforeEach(() => {
     mock_render.mockClear();
-    mock_exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    mock_exit = vi.spyOn(process, "exit").mockImplementation((() => undefined) as () => never);
   });
 
   afterEach(() => {

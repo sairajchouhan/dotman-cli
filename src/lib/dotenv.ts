@@ -3,6 +3,7 @@ import path from "node:path";
 import { parse } from "dotenv";
 import dotenv_stringify from "dotenv-stringify";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
+import { messages } from "@/messages";
 import { CustomError } from "./error";
 import type { EnvMap } from "./types";
 
@@ -30,7 +31,7 @@ function validate_path_security(env_file_name: string, operation: "read" | "writ
   const is_within_cwd = final_path.startsWith(canonical_cwd + path.sep) || final_path === canonical_cwd;
 
   if (!is_within_cwd) {
-    return errAsync(new CustomError(`Cannot ${operation} files outside of current working directory`));
+    return errAsync(new CustomError(messages.dotenv.path_outside_cwd(operation)));
   }
 
   return okAsync(final_path);
@@ -52,14 +53,14 @@ function check_symlink_security(final_path: string, env_file_name: string): Resu
       throw err;
     }),
     (err) =>
-      new CustomError("Could not check file status", {
+      new CustomError(messages.dotenv.check_file_status_failed, {
         cause: err as Error,
       }),
   ).andThen((stats) => {
     if (stats?.isSymbolicLink()) {
       return errAsync(
-        new CustomError(`Symlinks are not permitted for security reasons: "${env_file_name}"`, {
-          suggestion: "Use a regular file instead of a symlink",
+        new CustomError(messages.dotenv.symlink_not_permitted(env_file_name), {
+          suggestion: messages.dotenv.symlink_suggestion,
         }),
       );
     }
@@ -82,7 +83,7 @@ export function write_env(items: Record<string, string>, env_file_name: string):
       // Step 2: Convert env object to dotenv string format
       ResultAsync.fromPromise(
         Promise.resolve(dotenv_stringify(items)),
-        () => new CustomError("Could not process to a string"),
+        () => new CustomError(messages.dotenv.stringify_failed),
       ).map((final_str) => ({ final_path, final_str })),
     )
     .andThen(({ final_path, final_str }) =>
@@ -93,7 +94,7 @@ export function write_env(items: Record<string, string>, env_file_name: string):
       // Step 4: Write the file with restricted permissions (0o600 = owner read/write only)
       ResultAsync.fromPromise(
         fs.writeFile(final_path, final_str, { mode: 0o600 }),
-        () => new CustomError(`Could not update "${env_file_name}" file`),
+        () => new CustomError(messages.dotenv.write_failed(env_file_name)),
       ),
     );
 }
@@ -113,13 +114,13 @@ export function read_env(env_file_name: string): ResultAsync<EnvMap, CustomError
       // Step 3: Read the file contents
       ResultAsync.fromPromise(fs.readFile(final_path, "utf8"), (err) => err as FileSystemError).mapErr((err) => {
         if (err.code === "ENOENT") {
-          return new CustomError(`Environment file "${env_file_name}" not found`, {
-            suggestion: `Create the file "${env_file_name}" in your current directory (${process.cwd()}) or specify a different environment with --env`,
+          return new CustomError(messages.dotenv.file_not_found(env_file_name), {
+            suggestion: messages.dotenv.file_not_found_suggestion(env_file_name),
             cause: err,
           });
         }
-        return new CustomError(`Failed to read "${env_file_name}": ${err.message}`, {
-          suggestion: "Check that the file exists and is accessible",
+        return new CustomError(messages.dotenv.read_failed(env_file_name, err.message), {
+          suggestion: messages.dotenv.read_failed_suggestion,
           cause: err,
         });
       }),
@@ -134,14 +135,14 @@ export function read_env(env_file_name: string): ResultAsync<EnvMap, CustomError
       return ResultAsync.fromPromise(
         Promise.resolve(parse(content)),
         () =>
-          new CustomError(`Failed to parse environment file "${env_file_name}"`, {
-            suggestion: "Check that your .env file contains valid KEY=VALUE pairs and fix any syntax errors",
+          new CustomError(messages.dotenv.parse_failed(env_file_name), {
+            suggestion: messages.dotenv.parse_failed_suggestion,
           }),
       );
     });
 }
 
-export interface ReadEnvFilesResult {
+interface ReadEnvFilesResult {
   env_map: EnvMap;
   environment_env_map: EnvMap;
   env_file_name: string;

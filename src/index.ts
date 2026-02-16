@@ -2,9 +2,11 @@
 import "dotenv/config";
 import { render_error } from "@/components/errors";
 import { validate_environment_name } from "@/lib/environment";
+import { messages } from "@/messages";
 import { env_cmd } from "./cmds/env.ts";
 import { init_cmd } from "./cmds/init.ts";
 import { load_cmd } from "./cmds/load.ts";
+import { providers_cmd } from "./cmds/providers.ts";
 import { pull_cmd } from "./cmds/pull.ts";
 import { push_cmd } from "./cmds/push.ts";
 import { program } from "./program.ts";
@@ -13,10 +15,10 @@ import { VERSION } from "./version.ts";
 
 program
   .name("dotman")
-  .description("Manage environment variables with password managers")
+  .description(messages.program.description)
   .version(VERSION)
-  .option("-e, --env <ENV>", "Environment name (e.g., dev, stag, prod)")
-  .option("-a, --apply", "Apply changes to the source", false)
+  .option("-e, --env <ENV>", messages.program.env_option)
+  .option("-a, --apply", messages.program.apply_option, false)
   .hook("preAction", (_thisCommand, actionCommand) => {
     const opts = actionCommand.optsWithGlobals();
     const env = opts.env;
@@ -38,4 +40,5 @@ program
   .addCommand(push_cmd)
   .addCommand(env_cmd)
   .addCommand(load_cmd)
+  .addCommand(providers_cmd)
   .parse();

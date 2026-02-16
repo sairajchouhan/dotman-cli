@@ -1,11 +1,11 @@
 import type { Item as OpItem } from "@1password/sdk";
 import sdk, { type Client, type ItemField, ItemFieldType } from "@1password/sdk";
-import { errAsync, okAsync, ResultAsync } from "neverthrow";
+import { errAsync, ok, okAsync, ResultAsync } from "neverthrow";
 import { toJSONSchema, type z } from "zod";
 import { constants } from "@/constants";
 import { env_map_op_schema } from "@/lib/env_schema";
 import { CustomError } from "@/lib/error";
-import type { Project, StorageClient } from "@/lib/types";
+import type { EnvMap, Project, StorageClient } from "@/lib/types";
 import { get_project_name } from "@/lib/utils";
 import { uuid } from "@/lib/uuid";
 
@@ -85,6 +85,10 @@ export class OnePasswordStorageClient implements StorageClient {
           })),
         } satisfies Project;
       });
+  }
+
+  public validate_secrets(_env_map: EnvMap) {
+    return ok(undefined);
   }
 
   public get_client_env_keys(): string[] {

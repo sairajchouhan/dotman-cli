@@ -3,20 +3,21 @@ import { Command } from "commander";
 import { render_error, render_info } from "@/components/errors";
 import { read_env_files } from "@/lib/dotenv";
 import { get_current_environment } from "@/lib/environment";
+import { messages } from "@/messages";
 import { program } from "@/program";
 import { create_storage_client } from "@/storage/client";
 
 type NodeSignal = "SIGINT" | "SIGTERM" | "SIGHUP";
 
 export const load_cmd = new Command("load")
-  .description("Load environment variables from .env files and run a command")
+  .description(messages.commands.load.description)
   .argument("<command...>", "The command to run")
   .action(async (command_args: string[]) => {
     // 1. Validate command arguments
     if (!command_args || command_args.length === 0 || command_args[0]?.trim() === "") {
       render_error({
-        message: "No command provided to execute",
-        suggestion: "Provide a command, e.g., dotman load -- npm run dev",
+        message: messages.commands.load.no_command,
+        suggestion: messages.commands.load.no_command_suggestion,
         exit: true,
       });
       return;
@@ -54,7 +55,7 @@ export const load_cmd = new Command("load")
     const { env_map, environment_env_map, env_file_name } = env_files_res.value;
     const [command, ...args] = command_args as [string, ...string[]];
 
-    render_info({ message: `Loading environment from ${env_file_name}` });
+    render_info({ message: messages.commands.load.loading_env(env_file_name) });
 
     // 4. Identify dotman-specific keys to filter out
     let client_env_keys: string[] = [];
@@ -133,14 +134,14 @@ export const load_cmd = new Command("load")
 
       if (err.code === "ENOENT") {
         render_error({
-          message: `Command not found: "${command}"`,
-          suggestion: "Check that the command is installed and in PATH",
+          message: messages.commands.load.command_not_found(command),
+          suggestion: messages.commands.load.command_not_found_suggestion,
           exit: true,
         });
       } else {
         render_error({
-          message: `Failed to start command: ${err.message}`,
-          suggestion: "Check that the command is correct and installed.",
+          message: messages.commands.load.start_failed(err.message),
+          suggestion: messages.commands.load.start_failed_suggestion,
           exit: true,
         });
       }

@@ -1,8 +1,8 @@
 import sdk from "@bitwarden/sdk-napi";
-import { okAsync, ResultAsync } from "neverthrow";
+import { ok, okAsync, ResultAsync } from "neverthrow";
 import { toJSONSchema, z } from "zod";
 import { CustomError } from "@/lib/error";
-import type { Project, StorageClient } from "@/lib/types";
+import type { EnvMap, Project, StorageClient } from "@/lib/types";
 import { get_project_name } from "@/lib/utils";
 
 export const env_map_bw_schema = z.looseObject({
@@ -31,7 +31,7 @@ export const env_map_bw_schema = z.looseObject({
   BWS_ACCESS_TOKEN: z.string().min(1),
 });
 
-export type EnvMapBw = z.infer<typeof env_map_bw_schema>;
+type EnvMapBw = z.infer<typeof env_map_bw_schema>;
 
 export class BitwardenStorageClient implements StorageClient {
   public source = "bitwarden" as const;
@@ -103,6 +103,10 @@ export class BitwardenStorageClient implements StorageClient {
           secrets: updatd_secrets.map((sec) => ({ id: sec.id, title: sec.key, value: sec.value })),
         } satisfies Project;
       });
+  }
+
+  public validate_secrets(_env_map: EnvMap) {
+    return ok(undefined);
   }
 
   public get_client_env_keys(): string[] {

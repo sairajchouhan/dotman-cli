@@ -1,7 +1,8 @@
-import { errAsync, okAsync } from "neverthrow";
+import { errAsync, ok, okAsync } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomError } from "@/lib/error";
 import type { Project, StorageClient } from "@/lib/types";
+import { messages } from "@/messages";
 
 const mock_opts_with_globals = vi.fn();
 const mock_get_current_environment = vi.fn();
@@ -52,6 +53,7 @@ function create_mock_storage_client(secrets: Array<{ id: string; title: string; 
     set_project: vi.fn(() => okAsync(project)),
     create_project: vi.fn(() => okAsync(project)),
     get_client_env_keys: vi.fn(() => ["OP_SERVICE_ACCOUNT_TOKEN", "OP_VAULT_NAME", "DOTMAN_PROJECT_NAME"]),
+    validate_secrets: vi.fn(() => ok(undefined)),
   };
 }
 
@@ -142,8 +144,8 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'No environment variables found in ".env.dev"',
-          suggestion: expect.stringContaining("Add some KEY=VALUE pairs"),
+          message: messages.commands.push.no_env_vars(".env.dev"),
+          suggestion: messages.commands.push.no_env_vars_suggestion,
           exit: true,
         }),
       );
@@ -183,7 +185,7 @@ describe("push_cmd", () => {
       );
       const storage_client = create_mock_storage_client();
       (storage_client.get_project as ReturnType<typeof vi.fn>).mockReturnValue(
-        errAsync(new CustomError("Vault access denied")),
+        errAsync(new CustomError("Remote access denied")),
       );
       mock_create_storage_client.mockReturnValue(okAsync(storage_client));
 
@@ -191,7 +193,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Vault access denied",
+          message: "Remote access denied",
           exit: true,
         }),
       );
@@ -216,7 +218,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const call_args = mock_render_diff.mock.calls[0];
+      const call_args = mock_render_diff.mock.calls[0]!;
       expect(call_args[0].added_count).toBe(1);
     });
 
@@ -240,7 +242,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("No custom environment variables"),
+          message: messages.commands.push.no_custom_env_vars(".env.dev"),
           exit: true,
         }),
       );
@@ -264,7 +266,7 @@ describe("push_cmd", () => {
 
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Everything up to date",
+          message: messages.commands.push.up_to_date,
         }),
       );
     });
@@ -283,7 +285,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const call_args = mock_render_diff.mock.calls[0];
+      const call_args = mock_render_diff.mock.calls[0]!;
       expect(call_args[0].total_count).toBe(1);
       expect(call_args[0].modified_count).toBe(1);
     });
@@ -307,7 +309,7 @@ describe("push_cmd", () => {
       expect(storage_client.set_project).toHaveBeenCalled();
       expect(mock_render_success).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Updated vault with latest changes",
+          message: messages.commands.push.success,
         }),
       );
     });
@@ -326,12 +328,12 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       expect(project.secrets).toHaveLength(1);
-      expect(project.secrets[0].title).toBe("NEW_KEY");
-      expect(project.secrets[0].value).toBe("new-value");
-      expect(project.secrets[0].id).toBe("generated-uuid");
+      expect(project.secrets[0]?.title).toBe("NEW_KEY");
+      expect(project.secrets[0]?.value).toBe("new-value");
+      expect(project.secrets[0]?.id).toBe("generated-uuid");
     });
 
     it("handles modified secrets correctly", async () => {
@@ -348,7 +350,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       const modified_secret = project.secrets.find((s) => s.title === "API_KEY");
       expect(modified_secret?.value).toBe("updated-value");
@@ -372,7 +374,7 @@ describe("push_cmd", () => {
 
       await push_cmd.parseAsync(["node", "push"]);
 
-      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0];
+      const set_project_call = (storage_client.set_project as ReturnType<typeof vi.fn>).mock.calls[0]!;
       const project: Project = set_project_call[0];
       expect(project.secrets).toHaveLength(1);
       expect(project.secrets.find((s) => s.title === "DELETE_KEY")).toBeUndefined();

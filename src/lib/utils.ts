@@ -1,6 +1,7 @@
 import { errAsync, ResultAsync } from "neverthrow";
 import { project_environment_separator } from "@/constants";
 import { CustomError } from "@/lib/error";
+import { messages } from "@/messages";
 import { env_paths } from "./env-paths";
 import { safe_fs_mkdir, safe_path_join } from "./safe";
 
@@ -17,7 +18,7 @@ export function get_state_file_path(): ResultAsync<string, CustomError> {
   const project_name = "dotman";
 
   const state_dir = env_paths(project_name).mapErr(
-    (err) => new CustomError("Could not get path for storing current environment", { cause: err }),
+    (err) => new CustomError(messages.utils.state_path_error, { cause: err }),
   );
 
   const state_dir_created = state_dir.asyncAndThen((paths) =>
@@ -42,12 +43,12 @@ export function mask_secret_value(value: string): string {
 
 export function get_value_change_indicator(old_value: string, new_value: string): string {
   if (old_value === new_value) {
-    return "(no change)";
+    return messages.utils.no_change;
   }
 
   if (old_value.length !== new_value.length) {
-    return `(length: ${old_value.length} → ${new_value.length})`;
+    return messages.utils.length_change(old_value.length, new_value.length);
   }
 
-  return "(modified)";
+  return messages.utils.modified;
 }

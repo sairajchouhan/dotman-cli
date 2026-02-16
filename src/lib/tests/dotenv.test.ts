@@ -5,6 +5,7 @@ import * as dotenv_module from "dotenv";
 import * as dotenv_stringify_module from "dotenv-stringify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { read_env, read_env_files, write_env } from "@/lib/dotenv";
+import { messages } from "@/messages";
 
 const original_cwd = process.cwd();
 let temp_dir: string;
@@ -36,7 +37,7 @@ describe("write_env", () => {
     const result = await write_env({ FOO: "bar" }, "../outside.env");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe("Cannot write files outside of current working directory");
+      expect(result.error.message).toBe(messages.dotenv.path_outside_cwd("write"));
     }
   });
 
@@ -62,7 +63,7 @@ describe("write_env", () => {
     const result = await write_env({ FOO: "bar" }, ".env.fail");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe('Could not update ".env.fail" file');
+      expect(result.error.message).toBe(messages.dotenv.write_failed(".env.fail"));
     }
 
     write_spy.mockRestore();
@@ -95,7 +96,7 @@ describe("read_env", () => {
     const result = await read_env(".env.missing");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe('Environment file ".env.missing" not found');
+      expect(result.error.message).toBe(messages.dotenv.file_not_found(".env.missing"));
     }
   });
 
@@ -103,7 +104,7 @@ describe("read_env", () => {
     const result = await read_env("../.env");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe("Cannot read files outside of current working directory");
+      expect(result.error.message).toBe(messages.dotenv.path_outside_cwd("read"));
     }
   });
 
@@ -177,7 +178,7 @@ describe("read_env_files", () => {
     const result = await read_env_files("qa");
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toBe('Environment file ".env.qa" not found');
+      expect(result.error.message).toBe(messages.dotenv.file_not_found(".env.qa"));
     }
   });
 });
