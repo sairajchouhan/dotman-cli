@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/sairajchouhan/dotman-cli/compare/v1.1.1...v1.2.0) (2026-02-16)
+
+
+### Features
+
+* add contentstack launch  ([#13](https://github.com/sairajchouhan/dotman-cli/issues/13)) ([75944e6](https://github.com/sairajchouhan/dotman-cli/commit/75944e6590b839b762ce7c623ecde1c53bef1739)), closes [#12](https://github.com/sairajchouhan/dotman-cli/issues/12)
+
 ## [1.1.1](https://github.com/sairajchouhan/dotman-cli/compare/v1.1.0...v1.1.1) (2026-01-27)
 
 
