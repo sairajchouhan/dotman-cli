@@ -79,81 +79,49 @@ export const init_cmd = new Command("init").description(messages.commands.init.d
   const env_map_keys = PROVIDER_REGISTRY[provider].get_env_map_keys();
   const field_metadata = PROVIDER_REGISTRY[provider].get_field_metadata();
 
-  let is_prompt_flow_cancelled = false;
-  const env_map_res = await ResultAsync.fromPromise(
-    Promise.resolve(
-      prompts.group(
-        Object.fromEntries(
-          env_map_keys.map((key) => {
-            const metadata = field_metadata[key];
-            let message = metadata?.description ?? messages.commands.init.field_value_fallback(key);
+  const env_map: Record<string, string> = {};
+  for (const key of env_map_keys) {
+    const metadata = field_metadata[key];
+    let message = metadata?.description ?? messages.commands.init.field_value_fallback(key);
 
-            if (metadata?.doc_url) {
-              // We append docs but try to keep it cleaner
-              message += ` (Docs: ${metadata.doc_url})`;
-            }
+    if (metadata?.doc_url) {
+      // We append docs but try to keep it cleaner
+      message += ` (Docs: ${metadata.doc_url})`;
+    }
 
-            const prompt_fn = metadata?.is_secret ? prompts.password : prompts.text;
+    const prompt_fn = metadata?.is_secret ? prompts.password : prompts.text;
 
-            // biome-ignore lint/suspicious/noExplicitAny: library types are complex to match perfectly here
-            const prompt_options: any = {
-              message,
-              validate(value: string) {
-                // Allow empty values for optional fields
-                if (metadata?.is_optional && value === "") {
-                  return undefined;
-                }
-                const result = PROVIDER_REGISTRY[provider].env_map_schema.partial().safeParse({ [key]: value });
-                if (result.success) return undefined;
-                const field_error = result.error.issues.find((issue) => issue.path[0] === key);
-                return (
-                  field_error?.message ?? result.error.issues[0]?.message ?? messages.commands.init.validation_fallback
-                );
-              },
-            };
+    // biome-ignore lint/suspicious/noExplicitAny: library types are complex to match perfectly here
+    const prompt_options: any = {
+      message,
+      validate(value: string) {
+        // Allow empty values for optional fields
+        if (metadata?.is_optional && value === "") {
+          return undefined;
+        }
+        const result = PROVIDER_REGISTRY[provider].env_map_schema.partial().safeParse({ [key]: value });
+        if (result.success) return undefined;
+        const field_error = result.error.issues.find((issue) => issue.path[0] === key);
+        return field_error?.message ?? result.error.issues[0]?.message ?? messages.commands.init.validation_fallback;
+      },
+    };
 
-            if (metadata?.hint) {
-              prompt_options.placeholder = metadata.hint;
-            }
+    if (metadata?.hint) {
+      prompt_options.placeholder = metadata.hint;
+    }
 
-            if (!metadata?.is_secret && metadata?.default_value) {
-              prompt_options.initialValue = metadata.default_value;
-            }
+    if (!metadata?.is_secret && metadata?.default_value) {
+      prompt_options.initialValue = metadata.default_value;
+    }
 
-            return [
-              key,
-              () => {
-                if (is_prompt_flow_cancelled) return "";
-                return prompt_fn(prompt_options);
-              },
-            ];
-          }),
-        ),
-        {
-          onCancel: () => {
-            is_prompt_flow_cancelled = true;
-            cancel();
-          },
-        },
-      ),
-    ),
-    (error) => new CustomError(messages.commands.init.invalid_configuration, { cause: error }),
-  );
+    const value = await prompt_fn(prompt_options);
+    if (prompts.isCancel(value)) {
+      cancel();
+      return;
+    }
 
-  if (is_prompt_flow_cancelled) {
-    return;
+    env_map[key] = value;
   }
-
-  if (env_map_res.isErr()) {
-    const error = env_map_res.error;
-    render_error({
-      message: error.message,
-      suggestion: error.suggestion,
-      exit: true,
-    });
-    return;
-  }
-  const env_map = env_map_res.value as Record<string, string>;
 
   const parse_res = PROVIDER_REGISTRY[provider].env_map_schema.safeParse(env_map);
   if (!parse_res.success) {
