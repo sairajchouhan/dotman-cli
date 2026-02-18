@@ -200,6 +200,10 @@ dotman env use production
 
 **📖 [Complete Bitwarden Setup Guide](docs/bitwarden.md)** – Follow this step-by-step guide to set up Bitwarden Secrets Manager (Cloud or Self-hosted).
 
+### Contentstack Launch
+
+**📖 [Complete Contentstack Launch Setup Guide](docs/contentstack-launch.md)** – Follow this step-by-step guide to set up Contentstack Launch.
+
 ## Environment Files
 
 dotman uses a simple naming convention:
