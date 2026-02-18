@@ -41,7 +41,7 @@ dotman init
 
 This will:
 
-- Prompt you to select a storage provider (currenlty 1Password or Bitwarden)
+- Prompt you to select a storage provider
 - Guide you through entering required credentials
 - Create or update your `.env` file
 - Create a project in your vault to store environment variables
@@ -261,7 +261,7 @@ dotman load -- npm start
 ## Security Notes
 
 > [!NOTE]
-> **Credential Security**: The configuration variables (like `OP_SERVICE_ACCOUNT_TOKEN`, `BWS_ACCESS_TOKEN`, `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
+> **Credential Security**: The configuration variables (like provider auth tokens, provider IDs, API URLs, and `DOTMAN_PROJECT_NAME`) stored in your `.env` file are **never** pushed to your secret vault. They remain local to your machine only. These credentials are automatically filtered out during `dotman push` operations.
 
 - **Never commit environment files** – Add `.env*` to your `.gitignore` to exclude all env files (`.env`, `.env.dev`, `.env.prod`, etc.)
 - **Use service accounts** – Create dedicated tokens with minimal permissions
