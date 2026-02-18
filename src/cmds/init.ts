@@ -79,51 +79,49 @@ export const init_cmd = new Command("init").description(messages.commands.init.d
   const env_map_keys = PROVIDER_REGISTRY[provider].get_env_map_keys();
   const field_metadata = PROVIDER_REGISTRY[provider].get_field_metadata();
 
-  const env_map = await prompts.group(
-    Object.fromEntries(
-      env_map_keys.map((key) => {
-        const metadata = field_metadata[key];
-        let message = metadata?.description ?? messages.commands.init.field_value_fallback(key);
+  const env_map: Record<string, string> = {};
+  for (const key of env_map_keys) {
+    const metadata = field_metadata[key];
+    let message = metadata?.description ?? messages.commands.init.field_value_fallback(key);
 
-        if (metadata?.doc_url) {
-          // We append docs but try to keep it cleaner
-          message += ` (Docs: ${metadata.doc_url})`;
+    if (metadata?.doc_url) {
+      // We append docs but try to keep it cleaner
+      message += ` (Docs: ${metadata.doc_url})`;
+    }
+
+    const prompt_fn = metadata?.is_secret ? prompts.password : prompts.text;
+
+    // biome-ignore lint/suspicious/noExplicitAny: library types are complex to match perfectly here
+    const prompt_options: any = {
+      message,
+      validate(value: string) {
+        // Allow empty values for optional fields
+        if (metadata?.is_optional && value === "") {
+          return undefined;
         }
+        const result = PROVIDER_REGISTRY[provider].env_map_schema.partial().safeParse({ [key]: value });
+        if (result.success) return undefined;
+        const field_error = result.error.issues.find((issue) => issue.path[0] === key);
+        return field_error?.message ?? result.error.issues[0]?.message ?? messages.commands.init.validation_fallback;
+      },
+    };
 
-        const prompt_fn = metadata?.is_secret ? prompts.password : prompts.text;
+    if (metadata?.hint) {
+      prompt_options.placeholder = metadata.hint;
+    }
 
-        // biome-ignore lint/suspicious/noExplicitAny: library types are complex to match perfectly here
-        const prompt_options: any = {
-          message,
-          validate(value: string) {
-            // Allow empty values for optional fields
-            if (metadata?.is_optional && value === "") {
-              return undefined;
-            }
-            const result = PROVIDER_REGISTRY[provider].env_map_schema.partial().safeParse({ [key]: value });
-            if (result.success) return undefined;
-            const field_error = result.error.issues.find((issue) => issue.path[0] === key);
-            return (
-              field_error?.message ?? result.error.issues[0]?.message ?? messages.commands.init.validation_fallback
-            );
-          },
-        };
+    if (!metadata?.is_secret && metadata?.default_value) {
+      prompt_options.initialValue = metadata.default_value;
+    }
 
-        if (metadata?.hint) {
-          prompt_options.placeholder = metadata.hint;
-        }
+    const value = await prompt_fn(prompt_options);
+    if (prompts.isCancel(value)) {
+      cancel();
+      return;
+    }
 
-        if (!metadata?.is_secret && metadata?.default_value) {
-          prompt_options.initialValue = metadata.default_value;
-        }
-
-        return [key, () => prompt_fn(prompt_options)];
-      }),
-    ),
-    {
-      onCancel: () => cancel(),
-    },
-  );
+    env_map[key] = value;
+  }
 
   const parse_res = PROVIDER_REGISTRY[provider].env_map_schema.safeParse(env_map);
   if (!parse_res.success) {
