@@ -280,6 +280,21 @@ describe("init_cmd", () => {
 
       expect(mock_group).toHaveBeenCalled();
     });
+
+    it("aborts all remaining credential prompts when user presses Ctrl+C", async () => {
+      mock_read_env.mockReturnValue(okAsync({}));
+      mock_select.mockResolvedValueOnce("onepassword");
+      mock_group.mockImplementation((_fields, opts: { onCancel?: (args: unknown) => void }) => {
+        opts.onCancel?.({ results: { DOTMAN_PROJECT_NAME: "canceled" } });
+      });
+
+      await init_cmd.parseAsync(["node", "init"]);
+
+      expect(mock_cancel).toHaveBeenCalledWith(messages.commands.init.operation_cancelled);
+      expect(mock_write_env).not.toHaveBeenCalled();
+      expect(mock_provider_create).not.toHaveBeenCalled();
+      expect(mock_render_error).not.toHaveBeenCalled();
+    });
   });
 
   describe("write_env", () => {
