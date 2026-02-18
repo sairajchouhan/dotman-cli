@@ -5,7 +5,8 @@ import type { Project, StorageClient } from "@/lib/types";
 import { messages } from "@/messages";
 
 const mock_select = vi.fn();
-const mock_group = vi.fn();
+const mock_text = vi.fn();
+const mock_password = vi.fn();
 const mock_cancel = vi.fn();
 const mock_is_cancel = vi.fn();
 const mock_read_env = vi.fn();
@@ -27,10 +28,10 @@ const mock_provider_create = vi.fn();
 
 vi.mock("@clack/prompts", () => ({
   select: (opts: unknown) => mock_select(opts),
-  group: (fields: unknown, opts: unknown) => mock_group(fields, opts),
   cancel: (msg: string) => mock_cancel(msg),
   isCancel: (val: unknown) => mock_is_cancel(val),
-  text: vi.fn(),
+  text: (opts: unknown) => mock_text(opts),
+  password: (opts: unknown) => mock_password(opts),
 }));
 
 vi.mock("@/lib/dotenv", () => ({
@@ -81,6 +82,10 @@ vi.mock("@/storage/providers", () => ({
 
 import { init_cmd } from "@/cmds/init";
 
+const mock_onepassword_inputs = (project = "test-project", vault = "test-vault", token = "test-token") => {
+  mock_text.mockResolvedValueOnce(project).mockResolvedValueOnce(vault).mockResolvedValueOnce(token);
+};
+
 describe("init_cmd", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,11 +96,7 @@ describe("init_cmd", () => {
     it("prompts for action when .env exists with values", async () => {
       mock_read_env.mockReturnValue(okAsync({ EXISTING_KEY: "value" }));
       mock_select.mockResolvedValueOnce("overwrite").mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -113,11 +114,7 @@ describe("init_cmd", () => {
       (enoent_error as { cause?: { code: string } }).cause = { code: "ENOENT" };
       mock_read_env.mockReturnValue(errAsync(enoent_error));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -156,11 +153,7 @@ describe("init_cmd", () => {
     it("keeps existing values when ignore action selected", async () => {
       mock_read_env.mockReturnValue(okAsync({ EXISTING_KEY: "existing-value" }));
       mock_select.mockResolvedValueOnce("ignore").mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -178,11 +171,7 @@ describe("init_cmd", () => {
     it("overwrites existing values when overwrite action selected", async () => {
       mock_read_env.mockReturnValue(okAsync({ EXISTING_KEY: "existing-value" }));
       mock_select.mockResolvedValueOnce("overwrite").mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -216,11 +205,7 @@ describe("init_cmd", () => {
     it("prompts for provider selection", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -246,7 +231,7 @@ describe("init_cmd", () => {
       await init_cmd.parseAsync(["node", "init"]);
 
       expect(mock_cancel).toHaveBeenCalled();
-      expect(mock_group).not.toHaveBeenCalled();
+      expect(mock_text).not.toHaveBeenCalled();
     });
 
     it("renders error for invalid provider", async () => {
@@ -265,20 +250,32 @@ describe("init_cmd", () => {
   });
 
   describe("credential input", () => {
-    it("collects credentials via prompts.group", async () => {
+    it("collects credentials via prompt inputs", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "my-project",
-        OP_VAULT_NAME: "my-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "my-token",
-      });
+      mock_onepassword_inputs("my-project", "my-vault", "my-token");
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
       await init_cmd.parseAsync(["node", "init"]);
 
-      expect(mock_group).toHaveBeenCalled();
+      expect(mock_text).toHaveBeenCalledTimes(3);
+    });
+
+    it("aborts all remaining credential prompts when user presses Ctrl+C", async () => {
+      mock_read_env.mockReturnValue(okAsync({}));
+      mock_select.mockResolvedValueOnce("onepassword");
+      const cancel_symbol = Symbol("cancel");
+      mock_text.mockResolvedValueOnce(cancel_symbol);
+      mock_is_cancel.mockImplementation((val) => val === cancel_symbol);
+
+      await init_cmd.parseAsync(["node", "init"]);
+
+      expect(mock_cancel).toHaveBeenCalledWith(messages.commands.init.operation_cancelled);
+      expect(mock_text).toHaveBeenCalledTimes(1);
+      expect(mock_write_env).not.toHaveBeenCalled();
+      expect(mock_provider_create).not.toHaveBeenCalled();
+      expect(mock_render_error).not.toHaveBeenCalled();
     });
   });
 
@@ -286,11 +283,7 @@ describe("init_cmd", () => {
     it("writes env map to .env file", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -309,11 +302,7 @@ describe("init_cmd", () => {
     it("renders error when write_env fails", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(errAsync(new CustomError("Write failed")));
 
       await init_cmd.parseAsync(["node", "init"]);
@@ -331,11 +320,7 @@ describe("init_cmd", () => {
     it("creates storage client with provider", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -351,11 +336,7 @@ describe("init_cmd", () => {
     it("renders error when storage client creation fails", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "invalid-token",
-      });
+      mock_onepassword_inputs("test-project", "test-vault", "invalid-token");
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(errAsync(new CustomError("Invalid token")));
 
@@ -374,11 +355,7 @@ describe("init_cmd", () => {
     it("creates project in vault", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
@@ -390,11 +367,7 @@ describe("init_cmd", () => {
     it("renders error when project creation fails", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "test-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs();
       mock_write_env.mockReturnValue(okAsync(undefined));
       const failing_client = {
         ...mock_storage_client,
@@ -415,11 +388,7 @@ describe("init_cmd", () => {
     it("renders success message after successful initialization", async () => {
       mock_read_env.mockReturnValue(okAsync({}));
       mock_select.mockResolvedValueOnce("onepassword");
-      mock_group.mockResolvedValue({
-        DOTMAN_PROJECT_NAME: "my-awesome-project",
-        OP_VAULT_NAME: "test-vault",
-        OP_SERVICE_ACCOUNT_TOKEN: "test-token",
-      });
+      mock_onepassword_inputs("my-awesome-project", "test-vault", "test-token");
       mock_write_env.mockReturnValue(okAsync(undefined));
       mock_provider_create.mockReturnValue(okAsync(mock_storage_client));
 
